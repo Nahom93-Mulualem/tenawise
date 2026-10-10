@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><title>TenaWise</title><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;background-color:#f2fcf5;color:#151d1a;}body{overscroll-behavior-y:none;-webkit-tap-highlight-color:transparent;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}*{-webkit-user-select:none;user-select:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: 'class', theme: { extend: { colors: { 'secondary': '#35675e', 'on-tertiary-container': '#ffb19b', 'on-tertiary-fixed': '#3a0a00', 'error-container': '#ffdad6', 'on-primary-container': '#9fcfb2', 'outline': '#717973', 'on-tertiary-fixed-variant': '#7d2c13', 'error': '#ba1a1a', 'background': '#f2fcf5', 'on-surface-variant': '#414943', 'primary-fixed': '#bceecf', 'tertiary': '#6c2007', 'tertiary-fixed': '#ffdbd1', 'surface-variant': '#dbe5de', 'surface-container': '#e6f0ea', 'on-error': '#ffffff', 'primary': '#14422d', 'primary-fixed-dim': '#a1d1b4', 'outline-variant': '#c0c9c1', 'on-primary-fixed': '#002112', 'secondary-fixed': '#b8ede1', 'on-secondary-container': '#3b6d63', 'secondary-container': '#b8ede1', 'surface-container-low': '#ecf6ef', 'surface-container-lowest': '#ffffff', 'surface-container-high': '#e1ebe4', 'inverse-primary': '#a1d1b4', 'on-surface': '#151d1a', 'on-tertiary': '#ffffff', 'secondary-fixed-dim': '#9dd1c5', 'surface': '#f2fcf5', 'tertiary-fixed-dim': '#ffb59f', 'on-primary': '#ffffff', 'on-secondary-fixed-variant': '#1a4f46', 'on-background': '#151d1a', 'on-error-container': '#93000a', 'surface-dim': '#d2dcd6', 'tertiary-container': '#8b361c', 'on-secondary-fixed': '#00201b', 'on-primary-fixed-variant': '#224f39', 'primary-container': '#2d5a43', 'surface-bright': '#f2fcf5', 'inverse-on-surface': '#e9f3ed', 'on-secondary': '#ffffff', 'surface-tint': '#3a674f', 'inverse-surface': '#29322e', 'surface-container-highest': '#dbe5de' }, borderRadius: { 'DEFAULT': '0.25rem', 'lg': '0.5rem', 'xl': '0.75rem', 'full': '9999px' }, spacing: { 'space-xl': '2.5rem', 'gutter-md': '1.5rem', 'space-sm': '0.5rem', 'space-md': '1rem', 'gutter-lg': '2rem', 'margin': '1rem', 'margin-lg': '3rem', 'space-lg': '1.5rem', 'margin-md': '2rem', 'space-xs': '0.25rem', 'gutter': '1rem' }, fontFamily: { 'headline-md': ['Plus Jakarta Sans'], 'headline-lg': ['Plus Jakarta Sans'], 'label-sm': ['Plus Jakarta Sans'], 'display': ['Plus Jakarta Sans'], 'body-lg': ['Noto Sans'], 'label-md': ['Plus Jakarta Sans'], 'headline-lg-mobile': ['Plus Jakarta Sans'], 'display-mobile': ['Plus Jakarta Sans'], 'headline-sm': ['Plus Jakarta Sans'], 'label-lg': ['Plus Jakarta Sans'], 'body-sm': ['Noto Sans'], 'body-md': ['Noto Sans'] }, fontSize: { 'headline-md': ['22px', { 'lineHeight': '30px', 'letterSpacing': '0em', 'fontWeight': '600' }], 'headline-lg': ['32px', { 'lineHeight': '40px', 'letterSpacing': '-0.01em', 'fontWeight': '700' }], 'label-sm': ['11px', { 'lineHeight': '14px', 'letterSpacing': '0.04em', 'fontWeight': '500' }], 'display': ['40px', { 'lineHeight': '48px', 'letterSpacing': '-0.02em', 'fontWeight': '700' }], 'body-lg': ['18px', { 'lineHeight': '28px', 'letterSpacing': '0.01em', 'fontWeight': '400' }], 'label-md': ['12px', { 'lineHeight': '16px', 'letterSpacing': '0.03em', 'fontWeight': '600' }], 'headline-lg-mobile': ['24px', { 'lineHeight': '32px', 'letterSpacing': '0em', 'fontWeight': '700' }], 'display-mobile': ['30px', { 'lineHeight': '38px', 'letterSpacing': '-0.01em', 'fontWeight': '700' }], 'headline-sm': ['18px', { 'lineHeight': '26px', 'letterSpacing': '0em', 'fontWeight': '600' }], 'label-lg': ['14px', { 'lineHeight': '20px', 'letterSpacing': '0.02em', 'fontWeight': '600' }], 'body-sm': ['14px', { 'lineHeight': '20px', 'letterSpacing': '0.01em', 'fontWeight': '400' }], 'body-md': ['16px', { 'lineHeight': '24px', 'letterSpacing': '0.01em', 'fontWeight': '400' }] } } } };</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface font-body-md text-on-surface min-h-screen flex flex-col antialiased selection:bg-secondary-fixed selection:text-on-secondary-fixed"><header class="fixed top-0 inset-x-0 z-50 bg-surface/90 backdrop-blur-xl pt-safe shadow-[0_1px_8px_rgba(20,66,45,0.05)]"><div class="h-16 px-3 flex items-center justify-between"><div class="flex items-center gap-space-xs"><img alt="TenaWise Care and Learning Logo.png" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1WlcTsgEcpKLm8x7VvuIYJm0tzkp6h0OsMmSvsBwlrpSpO6RqSQzRRHyMOHlTPr7g1g5sDdR1mURoAo1jgZ3rN3sOU27o1YU2FwkHrEXZ5SS6yyJ1lNh9Vdx7CnAi44uxR3qBsp2HG799RLWDaKkhULnTUUdBJ-Z0hpXUtmFV6nIedSMUgGoDiPKiO_OgzqViZ7kGCX6FOkfeetvMbdPMfN6RFB0fAcEumYyznud_hjD11cOSA9FOwbYDQ"/><div class="flex flex-col ml-1"><div class="flex items-center gap-1.5"><span class="font-headline-sm text-headline-sm text-primary tracking-tight font-bold">TenaWise</span><span class="hidden xs:inline-block font-label-sm text-label-sm px-1.5 py-0.5 rounded-full bg-secondary-container text-on-secondary-container">Period Tool</span></div><span class="font-label-sm text-[10px] text-on-surface-variant leading-tight truncate max-w-[120px] sm:max-w-none">ጤናማ እውቀት፣ ጥበብ ያለው ምርጫ</span></div></div><div class="flex items-center gap-1.5"><button aria-label="Quick Exit / ደህንነቴ" class="min-h-[44px] px-2.5 py-1.5 rounded-full bg-error text-on-error flex items-center gap-1 shadow-sm active:scale-95 transition-transform" onclick="window.location.replace('https://en.wikipedia.org/wiki/Main_Page');" type="button"><span class="material-symbols-outlined text-[16px]">logout</span><span class="font-label-sm text-[11px] font-semibold leading-none">ደህንነቴ</span></button><button aria-label="Language Toggle" class="min-h-[44px] min-w-[44px] px-2 py-1.5 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center font-label-sm text-[11px] font-semibold active:scale-95 transition-transform" type="button"><span class="leading-none">EN|አማ</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-sm"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex-1 flex flex-col relative w-full pt-16 pb-20 bg-surface"><div class="flex flex-col w-full px-margin pb-space-xl gap-space-lg">
+<!-- Section 1: Scientific Educational Framing & Privacy Badge -->
+<section class="flex flex-col gap-space-sm pt-space-sm">
+<div class="inline-flex items-center gap-1.5 self-start px-2.5 py-1 rounded-full bg-secondary-container text-on-secondary-container shadow-sm">
+<span class="material-symbols-outlined text-[15px]" style="font-variation-settings: 'FILL' 1;">shield</span>
+<span class="font-label-sm text-label-sm font-semibold tracking-wide">100% Client-Side Privacy: No data leaves your phone</span>
+</div>
+<div class="flex flex-col gap-1">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary tracking-tight font-bold">
+        Period Calculator <span class="text-secondary font-medium block text-headline-sm">(የወር አበባ አስሊ)</span>
+</h1>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+        Estimate when your next cycle begins, anticipate fertile windows, and understand your natural hormonal rhythms confidentially.
+      </p>
+</div>
+</section>
+<!-- Section 2: Interactive Calculator Form -->
+<section class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col gap-space-md">
+<div class="flex items-center gap-2 pb-1">
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">calendar_month</span>
+</div>
+<h2 class="font-headline-sm text-headline-sm text-primary font-bold">Your Cycle Inputs</h2>
+</div>
+<form class="flex flex-col gap-space-md" id="cycleCalculatorForm" onsubmit="event.preventDefault(); window.calculateCycle();">
+<!-- Input 1: Last Period Start Date -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-lg text-label-lg text-on-surface flex items-center justify-between" for="lastPeriodDate">
+<span>First day of last period <span class="text-on-surface-variant font-normal text-body-sm">(የጀመረበት ቀን)</span></span>
+<span class="material-symbols-outlined text-secondary text-[18px]">event</span>
+</label>
+<div class="relative bg-surface-container-low rounded-lg p-2.5 focus-within:bg-surface-container-lowest transition-colors">
+<input class="w-full bg-transparent text-on-surface font-body-md text-body-md focus:outline-none appearance-none" id="lastPeriodDate" name="lastPeriodDate" required="" type="date"/>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Select the first calendar day you noticed fresh bleeding.</span>
+</div>
+<!-- Input 2: Period Duration Slider -->
+<div class="flex flex-col gap-2 bg-surface-container-low p-space-sm rounded-lg">
+<div class="flex items-center justify-between">
+<label class="font-label-lg text-label-lg text-on-surface" for="periodLength">
+            Period duration <span class="text-on-surface-variant font-normal text-body-sm">(የቆየበት ቀናት)</span>
+</label>
+<span class="px-2.5 py-0.5 rounded-full bg-surface-container-highest text-primary font-bold font-label-md text-label-md">
+<span id="periodLengthValue">5</span> Days
+          </span>
+</div>
+<input class="w-full accent-primary h-2 bg-surface-variant rounded-full cursor-pointer" id="periodLength" max="10" min="3" name="periodLength" oninput="document.getElementById('periodLengthValue').innerText = this.value" type="range" value="5"/>
+<div class="flex justify-between font-label-sm text-label-sm text-on-surface-variant px-0.5">
+<span>3 days</span>
+<span class="text-secondary font-medium">Avg: 5 days</span>
+<span>10 days</span>
+</div>
+</div>
+<!-- Input 3: Cycle Length Stepper & Slider -->
+<div class="flex flex-col gap-2 bg-surface-container-low p-space-sm rounded-lg">
+<div class="flex items-center justify-between">
+<label class="font-label-lg text-label-lg text-on-surface" for="cycleLength">
+            Average cycle length <span class="text-on-surface-variant font-normal text-body-sm">(የዑደት ርዝመት)</span>
+</label>
+<span class="px-2.5 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed font-bold font-label-md text-label-md">
+<span id="cycleLengthValue">28</span> Days
+          </span>
+</div>
+<input class="w-full accent-primary h-2 bg-surface-variant rounded-full cursor-pointer" id="cycleLength" max="40" min="21" name="cycleLength" oninput="document.getElementById('cycleLengthValue').innerText = this.value" type="range" value="28"/>
+<div class="flex justify-between font-label-sm text-label-sm text-on-surface-variant px-0.5">
+<span>21 days</span>
+<span class="text-primary font-medium">Standard: 28 days</span>
+<span>40 days</span>
+</div>
+</div>
+<!-- Collapsible Educational Guide -->
+<div class="rounded-lg bg-surface-container overflow-hidden">
+<button class="w-full p-space-sm flex items-center justify-between text-left active:bg-surface-container-high transition-colors" onclick="const c = document.getElementById('cycleGuideContent'); const icon = document.getElementById('guideChevron'); c.classList.toggle('hidden'); icon.classList.toggle('rotate-180');" type="button">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[20px]">help</span>
+<span class="font-label-lg text-label-lg text-primary font-semibold">How do I calculate cycle length? (እንዴት ማስላት እችላለሁ?)</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-[20px] transition-transform" id="guideChevron">expand_more</span>
+</button>
+<div class="hidden px-space-sm pb-space-sm pt-1 text-on-surface font-body-sm text-body-sm flex flex-col gap-2" id="cycleGuideContent">
+<p>Cycle length is <strong>not</strong> just the days you bleed. It is the complete interval between cycles:</p>
+<div class="flex flex-col gap-1.5 p-2 bg-surface-container-lowest rounded">
+<div class="flex items-start gap-2">
+<span class="w-5 h-5 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center font-bold text-label-sm shrink-0 mt-0.5">1</span>
+<span>Note <strong>Day 1</strong>: The very first day period bleeding starts.</span>
+</div>
+<div class="flex items-start gap-2">
+<span class="w-5 h-5 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center font-bold text-label-sm shrink-0 mt-0.5">2</span>
+<span>Count forward every day until the day <em>immediately before</em> your next period starts.</span>
+</div>
+<div class="flex items-start gap-2">
+<span class="w-5 h-5 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center font-bold text-label-sm shrink-0 mt-0.5">3</span>
+<span>That total sum is your cycle duration (usually 24–35 days in healthy youth).</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Primary Action -->
+<button class="w-full min-h-[48px] rounded-lg bg-primary-container text-on-primary font-label-lg text-label-lg font-semibold flex items-center justify-center gap-2 shadow-sm active:scale-[0.99] transition-transform" type="submit">
+<span class="material-symbols-outlined text-[20px]">auto_awesome</span>
+<span>Calculate My Cycle (ዑደቴን አስላ)</span>
+</button>
+</form>
+</section>
+<!-- Section 3: Visual Forecast & Interactive Cycle Timeline -->
+<section class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col gap-space-md relative overflow-hidden" id="resultsSection">
+<div class="flex items-start justify-between">
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-bold">Estimated Forecast</span>
+<h2 class="font-headline-md text-headline-md text-primary font-bold" id="nextPeriodRange">Nov 12 – Nov 17</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant" id="periodCountdownLabel">Estimated arrival in ~14 days</p>
+</div>
+<div class="w-12 h-12 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[26px]">water_drop</span>
+</div>
+</div>
+<!-- Cycle Phase Progression Bar -->
+<div class="flex flex-col gap-2">
+<div class="flex justify-between items-center text-label-sm font-label-sm text-on-surface-variant">
+<span>Cycle Architecture (28-Day Overview)</span>
+<span class="font-semibold text-primary">Day 1 to 28</span>
+</div>
+<!-- Multi-segment visual phase indicator -->
+<div class="h-3 w-full rounded-full overflow-hidden flex bg-surface-container">
+<div class="bg-tertiary-container relative group cursor-pointer" id="barBleed" style="width: 18%;" title="Menstruation (Days 1-5)"></div>
+<div class="bg-primary-fixed-dim relative group cursor-pointer" id="barFollicular" style="width: 28%;" title="Follicular Phase (Days 6-13)"></div>
+<div class="bg-secondary relative group cursor-pointer" id="barFertile" style="width: 14%;" title="Ovulation / Peak Fertile (Days 14-17)"></div>
+<div class="bg-surface-variant relative group cursor-pointer" id="barLuteal" style="width: 40%;" title="Luteal Phase (Days 18-28)"></div>
+</div>
+<!-- Phase legend -->
+<div class="grid grid-cols-2 gap-x-2 gap-y-1.5 pt-1 font-label-sm text-label-sm">
+<div class="flex items-center gap-1.5">
+<div class="w-2.5 h-2.5 rounded-full bg-tertiary-container shrink-0"></div>
+<span class="text-on-surface">Bleeding (Days 1–5)</span>
+</div>
+<div class="flex items-center gap-1.5">
+<div class="w-2.5 h-2.5 rounded-full bg-primary-fixed-dim shrink-0"></div>
+<span class="text-on-surface">Follicular (Days 6–13)</span>
+</div>
+<div class="flex items-center gap-1.5">
+<div class="w-2.5 h-2.5 rounded-full bg-secondary shrink-0"></div>
+<span class="text-on-surface font-semibold text-secondary">Fertile Window (14–17)</span>
+</div>
+<div class="flex items-center gap-1.5">
+<div class="w-2.5 h-2.5 rounded-full bg-surface-variant shrink-0"></div>
+<span class="text-on-surface">Luteal / PMS (18–28)</span>
+</div>
+</div>
+</div>
+<!-- Data Tiles: Fertile Window & Ovulation -->
+<div class="grid grid-cols-2 gap-space-sm pt-1">
+<div class="p-3 bg-secondary-container/40 rounded-lg flex flex-col gap-1">
+<div class="flex items-center gap-1 text-on-secondary-container">
+<span class="material-symbols-outlined text-[16px]">egg</span>
+<span class="font-label-sm text-label-sm font-bold uppercase">Estimated Ovulation</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-primary font-bold" id="ovulationDayText">Oct 29</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Peak hormonal release</span>
+</div>
+<div class="p-3 bg-primary-fixed/30 rounded-lg flex flex-col gap-1">
+<div class="flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-[16px]">all_inclusive</span>
+<span class="font-label-sm text-label-sm font-bold uppercase">Fertile Window</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-primary font-bold" id="fertileWindowText">Oct 25 – Oct 30</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Includes 5-day sperm survival</span>
+</div>
+</div>
+<!-- Mood & PMS Window Accordion card -->
+<div class="p-3 bg-surface-container-low rounded-lg flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-secondary text-[22px]">self_improvement</span>
+<div class="flex flex-col">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold">Mood &amp; PMS Window (ቅድመ-ወር አበባ)</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant" id="pmsDatesText">Expected Nov 05 – Nov 11 • Stay hydrated &amp; stretch</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 4: CRITICAL Medical Safeguard Warning -->
+<section class="bg-error-container text-on-error-container rounded-xl p-space-md shadow-sm flex flex-col gap-space-xs">
+<div class="flex items-center gap-2 text-error font-bold font-headline-sm text-headline-sm">
+<span class="material-symbols-outlined text-[24px]">gpp_maybe</span>
+<span>Critical Medical Notice</span>
+</div>
+<div class="font-label-lg text-label-lg font-bold text-on-error-container">
+      ይህን አስሊ ብቻውን እንደ እርግዝና መከላከያ አይጠቀሙበት። (Do NOT rely on this calendar for natural birth control).
+    </div>
+<p class="font-body-sm text-body-sm text-on-error-container leading-relaxed">
+      Cycle lengths fluctuate spontaneously due to exams, emotional stress, travel, nutritional changes, and common hormonal shifts. Sperm can survive up to 5 days inside reproductive tracts. If avoiding pregnancy is your goal, always utilize reliable modern contraceptives (condoms, implants, pills, or IUDs).
+    </p>
+</section>
+<!-- Section 5: The 4 Phases of Your Cycle (Bite-sized visual guides) -->
+<section class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-primary font-bold">The 4 Phases of Your Cycle</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Hormonal shifts &amp; localized Ethiopian nourishment tips</p>
+</div>
+<span class="material-symbols-outlined text-secondary">flare</span>
+</div>
+<!-- Horizontal Swipe Carousel for 4 Phases -->
+<div class="flex gap-space-md overflow-x-auto pb-2 pt-1 -mx-margin px-margin snap-x no-scrollbar">
+<!-- Phase 1 -->
+<div class="min-w-[260px] max-w-[270px] snap-center bg-surface-container-lowest rounded-xl p-space-md flex flex-col gap-3 shadow-sm shrink-0">
+<div class="h-28 rounded-lg overflow-hidden relative">
+<img class="w-full h-full object-cover" data-alt="Traditional Ethiopian injera served with iron-rich spinach and legume shiro on a woven mesob plate, warm natural morning light, soft earthy tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAw3TI9bjF7UEQ_YyHJ92mTNwliaWuMS1Wi0_BsWBOgUQWwJuFbbO9z23GtuTrur6E6uGlEm6mpYSe2JgSuW0wI8VODCVXjS4F27pmpSQI9PXGBBpIQ-ycu1SJieVcur2ZGiMbt02wZKeWxah1FLKPgGxyRtjWn3qaBDp5V5lrq0iesQ3YFUoOF4AIDY_VRfS0NBNI1FTCCk9D3f_wNMTqgKhNEJC3IkdJ66Cs2Y8Y"/>
+<span class="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-tertiary-container text-on-tertiary font-label-sm text-label-sm font-semibold">Phase 1: Bleeding</span>
+</div>
+<div class="flex flex-col gap-1">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">Menstruation (Days 1–5)</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Estrogen and progesterone drop. Practice self-care and gentle rest.</p>
+</div>
+<div class="p-2.5 bg-surface-container rounded-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary text-[18px]">restaurant</span>
+<span class="font-label-sm text-label-sm text-on-surface">Replenish iron: Teff injera, warm shiro wot, and beetroot soup.</span>
+</div>
+</div>
+<!-- Phase 2 -->
+<div class="min-w-[260px] max-w-[270px] snap-center bg-surface-container-lowest rounded-xl p-space-md flex flex-col gap-3 shadow-sm shrink-0">
+<div class="h-28 rounded-lg overflow-hidden relative">
+<img class="w-full h-full object-cover" data-alt="A young energetic woman walking comfortably through a sunny botanical garden in Addis Ababa with eucalyptus trees and warm morning glow." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCMenLy6k08jRYIsCJe4w1_BLNECRnhWCTAD8-ioBXA1Ap6nQYVWj1HazUi57IOaRoaxbz8EMJpLjahVX8Xe8pM3gfDA_c4f2jb-u0_sqN5bn4yNIreBKSy3cGXmfyTZqSwl_dyN7PiVb08cBGU76IVJu780vIfwLtFLEyrslKkoPI-_BZmOaJv1jN9S3kbZNrU_aWlCfEaHxeNPLPj94KOACBbdQ2Bz2qi220M5FY"/>
+<span class="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-semibold">Phase 2: Follicular</span>
+</div>
+<div class="flex flex-col gap-1">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">Follicular (Days 6–13)</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Estrogen rises steadily, restoring mental clarity and physical stamina.</p>
+</div>
+<div class="p-2.5 bg-surface-container rounded-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px]">bolt</span>
+<span class="font-label-sm text-label-sm text-on-surface">Optimal time for studying, high-energy workouts, and social projects.</span>
+</div>
+</div>
+<!-- Phase 3 -->
+<div class="min-w-[260px] max-w-[270px] snap-center bg-surface-container-lowest rounded-xl p-space-md flex flex-col gap-3 shadow-sm shrink-0">
+<div class="h-28 rounded-lg overflow-hidden relative">
+<img class="w-full h-full object-cover" data-alt="Fresh vibrant tropical fruits including papaya, avocado, and lime arranged on an Ethiopian artisan pottery surface, soft ambient warmth." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBmZ_NfbHk2SPjWdwUGEWgFB78hBonS1wvuxdp3q8CiUIHk0Ops9HoovRhjrJDtLYjxZNViIq34BJCYW_2xVV8I4PfWtyb0DZr82GLwecU15OV-kbet_HyOCKgH7FUjJCOscUM771Y1oMgIrYIQC1SBNRE6Xjio1C6_AnrsTEakBGuVPbwFHbOv7gk0XuLujhT0RJYgfeucMVB6PF15E4eWRBakK2WES99yLQ_hlVw"/>
+<span class="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm font-semibold">Phase 3: Ovulation</span>
+</div>
+<div class="flex flex-col gap-1">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">Ovulation (Days 14–16)</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Luteinizing Hormone (LH) surge triggers egg release. Body temperature rises slightly.</p>
+</div>
+<div class="p-2.5 bg-surface-container rounded-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">favorite</span>
+<span class="font-label-sm text-label-sm text-on-surface">Peak fertility window. High confidence and communication focus.</span>
+</div>
+</div>
+<!-- Phase 4 -->
+<div class="min-w-[260px] max-w-[270px] snap-center bg-surface-container-lowest rounded-xl p-space-md flex flex-col gap-3 shadow-sm shrink-0">
+<div class="h-28 rounded-lg overflow-hidden relative">
+<img class="w-full h-full object-cover" data-alt="Cozy steaming cup of spiced Ethiopian herbal tea resting beside a warm soft cotton shawl on a wooden bedside table." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4la3MO4p-qy2cdyW21UR6ctvDOVbwbw7kqyMzvpEapjoXZ9xuvRVWJwqm1uaV4hn_MJka5j5Cm0F0YuflziKJV3vdwfvlj5WTTg0JB0jvrFcwxDJM1EQx29uHDoRiIPGnd9lsvNVc9oYwF8TKxTjbIHZ9zEZsv81Vs7N22Vzee84hIFpIcP6KNO_6wLZvgLY-tmRZmjbYVhfqff68aXDcB2b5C3Zwo2vvs8XsclM"/>
+<span class="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-surface-variant text-on-surface-variant font-label-sm text-label-sm font-semibold">Phase 4: Luteal</span>
+</div>
+<div class="flex flex-col gap-1">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">Luteal (Days 17–28)</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Progesterone dominates before tapering. Mild cravings or mood sensitivity can occur.</p>
+</div>
+<div class="p-2.5 bg-surface-container rounded-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px]">bedtime</span>
+<span class="font-label-sm text-label-sm text-on-surface">Prioritize deep sleep, warm herbal teas (tena adam or ginger), and gentle walks.</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 6: Menstrual Health Q&A Accordion -->
+<section class="flex flex-col gap-space-sm">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px]">contact_support</span>
+</div>
+<h2 class="font-headline-sm text-headline-sm text-primary font-bold">Menstrual Health FAQ</h2>
+</div>
+<div class="flex flex-col gap-2">
+<!-- FAQ 1 -->
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm">
+<button class="w-full p-space-md flex items-center justify-between text-left active:bg-surface-container-low transition-colors" onclick="const a = document.getElementById('faqAns1'); const ic = document.getElementById('faqIcon1'); a.classList.toggle('hidden'); ic.classList.toggle('rotate-180');" type="button">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold">What is considered a normal cycle length?</span>
+<span class="material-symbols-outlined text-secondary text-[20px] transition-transform" id="faqIcon1">expand_more</span>
+</button>
+<div class="hidden px-space-md pb-space-md text-on-surface-variant font-body-sm text-body-sm" id="faqAns1">
+          A typical menstrual cycle lasts anywhere from 21 to 35 days for adult women, and up to 45 days for teenagers whose hormonal systems are still maturing. Bleeding usually lasts between 3 and 7 days.
+        </div>
+</div>
+<!-- FAQ 2 -->
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm">
+<button class="w-full p-space-md flex items-center justify-between text-left active:bg-surface-container-low transition-colors" onclick="const a = document.getElementById('faqAns2'); const ic = document.getElementById('faqIcon2'); a.classList.toggle('hidden'); ic.classList.toggle('rotate-180');" type="button">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold">Why can my period come early or be delayed?</span>
+<span class="material-symbols-outlined text-secondary text-[20px] transition-transform" id="faqIcon2">expand_more</span>
+</button>
+<div class="hidden px-space-md pb-space-md text-on-surface-variant font-body-sm text-body-sm" id="faqAns2">
+          Menstrual cycles respond quickly to changes in stress hormones (cortisol), school exam pressures, rapid weight changes, acute sickness, fasting periods, or rigorous exercise. Occasional slight variations of 2–4 days are normal.
+        </div>
+</div>
+<!-- FAQ 3 -->
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm">
+<button class="w-full p-space-md flex items-center justify-between text-left active:bg-surface-container-low transition-colors" onclick="const a = document.getElementById('faqAns3'); const ic = document.getElementById('faqIcon3'); a.classList.toggle('hidden'); ic.classList.toggle('rotate-180');" type="button">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold">Can contraceptives (like Depo or Implants) change my cycle?</span>
+<span class="material-symbols-outlined text-secondary text-[20px] transition-transform" id="faqIcon3">expand_more</span>
+</button>
+<div class="hidden px-space-md pb-space-md text-on-surface-variant font-body-sm text-body-sm" id="faqAns3">
+          Yes! Hormonal contraceptives (such as the 3-month injectable Depo-Provera or sub-dermal implants like Jadelle/Implanon) frequently make bleeding lighter, cause irregular spotting, or halt periods entirely (amenorrhea). This is safe and expected.
+        </div>
+</div>
+<!-- FAQ 4 -->
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm">
+<button class="w-full p-space-md flex items-center justify-between text-left active:bg-surface-container-low transition-colors" onclick="const a = document.getElementById('faqAns4'); const ic = document.getElementById('faqIcon4'); a.classList.toggle('hidden'); ic.classList.toggle('rotate-180');" type="button">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold">Is spotting between periods normal?</span>
+<span class="material-symbols-outlined text-secondary text-[20px] transition-transform" id="faqIcon4">expand_more</span>
+</button>
+<div class="hidden px-space-md pb-space-md text-on-surface-variant font-body-sm text-body-sm" id="faqAns4">
+          Light spotting around ovulation (mid-cycle) can happen due to a temporary estrogen shift. However, persistent spotting after intercourse or heavy mid-cycle bleeding warrants a confidential review with a clinic nurse.
+        </div>
+</div>
+<!-- FAQ 5 -->
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm">
+<button class="w-full p-space-md flex items-center justify-between text-left active:bg-surface-container-low transition-colors" onclick="const a = document.getElementById('faqAns5'); const ic = document.getElementById('faqIcon5'); a.classList.toggle('hidden'); ic.classList.toggle('rotate-180');" type="button">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold">When should I visit a health center in Ethiopia?</span>
+<span class="material-symbols-outlined text-secondary text-[20px] transition-transform" id="faqIcon5">expand_more</span>
+</button>
+<div class="hidden px-space-md pb-space-md text-on-surface-variant font-body-sm text-body-sm" id="faqAns5">
+          Seek guidance at a local youth-friendly clinic (e.g., FGAE clinics, Marie Stopes Ethiopia, or public health centers) if your bleeding soaks through more than one pad an hour for multiple consecutive hours, your pain disrupts daily function, or your period is absent for over 90 consecutive days without pregnancy.
+        </div>
+</div>
+</div>
+</section>
+<!-- Section 7: Quick Action Card: Ask TenaWise AI -->
+<section class="bg-primary-container text-on-primary rounded-xl p-space-md shadow-md flex items-center justify-between gap-space-md">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-1.5 text-secondary-fixed">
+<span class="material-symbols-outlined text-[18px]">lock</span>
+<span class="font-label-sm text-label-sm font-semibold uppercase tracking-wider">Anonymous &amp; Non-Judgmental</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm font-bold text-on-primary leading-snug">
+        Have questions about your cycle irregularities?
+      </h3>
+<p class="font-body-sm text-body-sm text-on-primary-container">
+        Chat with TenaWise AI safely. Your chats are never saved to servers.
+      </p>
+</div>
+<a class="min-h-[48px] px-4 rounded-lg bg-surface-container-lowest text-primary font-label-lg text-label-lg font-bold flex items-center justify-center gap-1.5 shrink-0 shadow-sm active:scale-95 transition-transform" data-path="ask-ai" href="#">
+<span>Ask AI</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</a>
+</section>
+</div>
+<script>
+(function() {
+  // Set default initial date to 14 days ago for realistic instant calculation
+  const dateInput = document.getElementById('lastPeriodDate');
+  const now = new Date();
+  const defaultDate = new Date(now.getTime() - (14 * 24 * 60 * 60 * 1000));
+  dateInput.value = defaultDate.toISOString().split('T')[0];
+
+  function formatShortDate(d) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return months[d.getMonth()] + ' ' + String(d.getDate()).padStart(2, '0');
+  }
+
+  window.calculateCycle = function() {
+    const rawVal = dateInput.value;
+    if (!rawVal) return;
+
+    const [y, m, d] = rawVal.split('-').map(Number);
+    const startDate = new Date(y, m - 1, d);
+    const cycleLen = parseInt(document.getElementById('cycleLength').value, 10);
+    const bleedLen = parseInt(document.getElementById('periodLength').value, 10);
+
+    // 1. Next Period Start Date
+    const nextStart = new Date(startDate.getTime() + (cycleLen * 24 * 60 * 60 * 1000));
+    const nextEnd = new Date(nextStart.getTime() + ((bleedLen - 1) * 24 * 60 * 60 * 1000));
+
+    // 2. Ovulation Date (typically 14 days before the next period starts)
+    const ovDate = new Date(nextStart.getTime() - (14 * 24 * 60 * 60 * 1000));
+
+    // 3. Fertile Window (5 days prior to ovulation through 1 day post ovulation)
+    const fertileStart = new Date(ovDate.getTime() - (5 * 24 * 60 * 60 * 1000));
+    const fertileEnd = new Date(ovDate.getTime() + (1 * 24 * 60 * 60 * 1000));
+
+    // 4. PMS Window (7 days prior to next period)
+    const pmsStart = new Date(nextStart.getTime() - (7 * 24 * 60 * 60 * 1000));
+    const pmsEnd = new Date(nextStart.getTime() - (1 * 24 * 60 * 60 * 1000));
+
+    // 5. Difference from today
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const diffDays = Math.ceil((nextStart.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+    // Update DOM
+    document.getElementById('nextPeriodRange').innerText = 
+      formatShortDate(nextStart) + ' – ' + formatShortDate(nextEnd);
+
+    const countdownText = diffDays > 0 
+      ? 'Estimated arrival in ~' + diffDays + ' days'
+      : (diffDays === 0 ? 'Estimated arrival is today' : 'Period may be past expected window');
+    document.getElementById('periodCountdownLabel').innerText = countdownText;
+
+    document.getElementById('ovulationDayText').innerText = formatShortDate(ovDate);
+    document.getElementById('fertileWindowText').innerText = 
+      formatShortDate(fertileStart) + ' – ' + formatShortDate(fertileEnd);
+
+    document.getElementById('pmsDatesText').innerText = 
+      'Expected ' + formatShortDate(pmsStart) + ' – ' + formatShortDate(pmsEnd) + ' • Stay hydrated & stretch';
+
+    // Update progress bar ratio dynamically
+    const bleedPct = Math.round((bleedLen / cycleLen) * 100);
+    const fertilePct = Math.round((6 / cycleLen) * 100);
+    const follicularPct = Math.max(10, Math.round(((cycleLen - 14 - bleedLen) / cycleLen) * 100));
+    const lutealPct = Math.max(10, 100 - (bleedPct + fertilePct + follicularPct));
+
+    document.getElementById('barBleed').style.width = bleedPct + '%';
+    document.getElementById('barFollicular').style.width = follicularPct + '%';
+    document.getElementById('barFertile').style.width = fertilePct + '%';
+    document.getElementById('barLuteal').style.width = lutealPct + '%';
+  };
+
+  // Run calculation immediately on load
+  window.calculateCycle();
+})();
+</script></main><nav class="fixed bottom-0 inset-x-0 z-50 pb-safe bg-surface/90 backdrop-blur-xl shadow-[0_-2px_12px_rgba(20,66,45,0.06)]" data-active-classes="text-primary font-bold"><div class="flex items-center justify-around h-16 px-1 max-w-md mx-auto"><a class="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] py-1 text-on-surface-variant transition-colors group" data-path="home" href="#"><span class="material-symbols-outlined text-[22px] group-hover:scale-105 transition-transform">home</span><span class="font-label-sm text-[11px] leading-tight mt-0.5">መነሻ</span></a><a class="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] py-1 text-on-surface-variant transition-colors group" data-path="learn" href="#"><span class="material-symbols-outlined text-[22px] group-hover:scale-105 transition-transform">menu_book</span><span class="font-label-sm text-[11px] leading-tight mt-0.5">ትምህርት</span></a><a aria-current="page" class="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] py-1 transition-colors group text-primary font-bold" data-path="period-tool" href="#"><span class="material-symbols-outlined text-[22px] group-hover:scale-105 transition-transform">water_drop</span><span class="font-label-sm text-[11px] leading-tight mt-0.5">የወር አበባ</span></a><a class="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] py-1 text-on-surface-variant transition-colors group" data-path="ask-ai" href="#"><span class="material-symbols-outlined text-[22px] group-hover:scale-105 transition-transform">auto_awesome</span><span class="font-label-sm text-[11px] leading-tight mt-0.5">ጠይቅ</span></a><a class="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] py-1 text-on-surface-variant transition-colors group" data-path="stories" href="#"><span class="material-symbols-outlined text-[22px] group-hover:scale-105 transition-transform">volunteer_activism</span><span class="font-label-sm text-[11px] leading-tight mt-0.5">ታሪኮች</span></a></div></nav></body></html>
