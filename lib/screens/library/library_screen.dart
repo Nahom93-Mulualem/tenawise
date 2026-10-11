@@ -4,7 +4,8 @@ import '../../core/theme/app_colors.dart';
 
 /// STI & Contraceptive Library screen.
 /// 100% English when English is selected; 100% Amharic when Amharic is selected.
-/// Responsive layout with live search and category filter chips.
+/// Supports smooth horizontal swipe gestures between all 4 categories:
+/// STIs, Contraception, Menstrual Health, and Sexual Health.
 class LibraryScreen extends StatefulWidget {
   const LibraryScreen({super.key});
 
@@ -13,10 +14,36 @@ class LibraryScreen extends StatefulWidget {
 }
 
 class _LibraryScreenState extends State<LibraryScreen> {
-  int _selectedTab = 0; // 0 = STIs, 1 = Contraceptives
+  late PageController _pageController;
+  int _selectedTab = 0; // 0=STIs, 1=Contraception, 2=Menstrual, 3=Sexual Health
   String _searchQuery = '';
   String _selectedFilter = 'All';
 
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: _selectedTab);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _onTabSelected(int index) {
+    setState(() {
+      _selectedTab = index;
+      _selectedFilter = 'All';
+    });
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  // 1. STIs Dataset
   final List<Map<String, dynamic>> _stiItems = [
     {
       'name_en': 'HIV',
@@ -111,6 +138,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
     },
   ];
 
+  // 2. Contraception Dataset
   final List<Map<String, dynamic>> _contraItems = [
     {
       'name_en': 'Male & Female Condoms',
@@ -194,6 +222,122 @@ class _LibraryScreenState extends State<LibraryScreen> {
     },
   ];
 
+  // 3. Menstrual Health Dataset
+  final List<Map<String, dynamic>> _menstrualItems = [
+    {
+      'name_en': 'Dysmenorrhea (Menstrual Cramps)',
+      'name_am': 'የወር አበባ ቁርጠት (Dysmenorrhea)',
+      'category_en': 'Symptoms',
+      'category_am': 'ምልክቶች',
+      'sub_en': 'Uterine Muscle Contraction',
+      'sub_am': 'የማህፀን መኮማተር ህመም',
+      'tag_en': 'Natural & Manageable',
+      'tag_am': 'ተፈጥሯዊ እና የሚታከም',
+      'details_en':
+          'Cramps occur when the uterus contracts to shed its lining, triggered by prostaglandins. Mild to moderate cramps are normal.',
+      'details_am':
+          'በማህፀን መኮማተር ምክንያት የሚከሰት የተለመደ የህመም ስሜት ነው። ሞቅ ያለ ውሃ መጠጣትና ሙቀት መስጠት ህመሙን ይቀንሳል።',
+      'action_en':
+          'Apply a warm heating pad to lower abdomen, stay hydrated, engage in light walking, and consult a clinic if pain is debilitating.',
+      'action_am':
+          'ሆድ ላይ የሞቀ ውሃ ከረጢት ማድረግ፣ በቂ እረፍት መውሰድ እና ህመሙ ከመጠን በላይ ከሆነ ሀኪም ማማከር ይመከራል።',
+    },
+    {
+      'name_en': 'PMS & Mood Changes',
+      'name_am': 'የቅድመ-ወር አበባ ምልክቶች (PMS)',
+      'category_en': 'Hormonal',
+      'category_am': 'ሆርሞናል',
+      'sub_en': 'Luteal Phase Progesterone Shifts',
+      'sub_am': 'ከወር አበባ በፊት የሚከሰት',
+      'tag_en': 'Premenstrual Syndrome',
+      'tag_am': 'የስሜት መለዋወጥ',
+      'details_en':
+          'Emotional fluctuations, bloating, breast tenderness, and fatigue occurring 5-11 days prior to menstruation due to changing hormone levels.',
+      'details_am':
+          'ከወር አበባ መምጣት ጥቂት ቀናት በፊት የሚከሰት የድካም፣ የሆድ መነፋት እና የስሜት መለዋወጥ ነው። ሆርሞኖች ሲቀያየሩ ይከሰታል።',
+      'action_en':
+          'Maintain regular sleep schedules, reduce caffeine and high-salt intake, and practice gentle relaxation exercises.',
+      'action_am':
+          'በቂ እንቅልፍ መተኛት፣ ጨውና ቡና መቀነስ እንዲሁም ቀላል እንቅስቃሴ ማድረግ ምልክቶቹን ያቃልላል።',
+    },
+    {
+      'name_en': 'Menstrual Hygiene Management',
+      'name_am': 'የወር አበባ ንፅህና አጠባበቅ',
+      'category_en': 'Hygiene',
+      'category_am': 'ንፅህና',
+      'sub_en': 'Infection Prevention & Care',
+      'sub_am': 'ኢንፌክሽንን መከላከል',
+      'tag_en': 'Crucial Health Practice',
+      'tag_am': 'መሰረታዊ የጤና ልማድ',
+      'details_en':
+          'Maintaining proper cleanliness prevents bacterial vaginosis and urinary tract infections. Use clean, breathable materials.',
+      'details_am':
+          'ንፅህናን በአግባቡ አለመጠበቅ ለተለያዩ ባክቴሪያል ኢንፌክሽኖች ሊያጋልጥ ይችላል። ንጹህ መከላከያዎችን መጠቀም አስፈላጊ ነው።',
+      'action_en':
+          'Change sanitary pads every 4-6 hours, wash with plain warm water without harsh perfumed soaps, and dry reusable cloths thoroughly in sunlight.',
+      'action_am':
+          'ሞዴስን በየ4-6 ሰዓቱ መቀየር፣ በንጹህ ውሃ መታጠብ እንዲሁም ሽታ ያላቸው ሳሙናዎችን አለመጠቀም።',
+    },
+  ];
+
+  // 4. Sexual Health & Relationships Dataset
+  final List<Map<String, dynamic>> _sexualHealthItems = [
+    {
+      'name_en': 'Consent & Boundaries',
+      'name_am': 'ፈቃደኝነት እና የግል ወሰን (Consent)',
+      'category_en': 'Relationships',
+      'category_am': 'ግንኙነት',
+      'sub_en': 'Mutual Respect & Communication',
+      'sub_am': 'የጋራ መከባበር',
+      'tag_en': 'Fundamental Right',
+      'tag_am': 'መሰረታዊ መብት',
+      'details_en':
+          'Consent must be freely given, reversible, informed, enthusiastic, and specific. Silence or peer pressure is never consent.',
+      'details_am':
+          'ማንኛውም ግንኙነት በሁለቱም ወገን ሙሉ ፈቃደኝነት እና መከባበር ላይ የተመሰረተ መሆን አለበት። ጫና ወይም ማስገደድ ፈቃደኝነት አይደለም።',
+      'action_en':
+          'Communicate openly with your partner about personal comfort levels. You always have the right to say no at any time.',
+      'action_am':
+          'ስለራስዎ ወሰን በግልጽ ይነጋገሩ። በማንኛውም ሰዓት ያለ ፍርሃት "አይሆንም" የማለት ሙሉ መብት አለዎት።',
+    },
+    {
+      'name_en': 'STI & Pregnancy Myth Busting',
+      'name_am': 'የተሳሳቱ አመለካከቶች እና እውነታዎች',
+      'category_en': 'Myths',
+      'category_am': 'እውነታዎች',
+      'sub_en': 'Evidence vs Rumors',
+      'sub_am': 'ሳይንሳዊ እውነታዎች',
+      'tag_en': 'Evidence-Based',
+      'tag_am': 'በማስረጃ የተደገፈ',
+      'details_en':
+          'Myth: Washing after sex prevents pregnancy. Truth: Sperm enters the cervix within seconds. Myth: Antibiotics before sex prevent STIs. Truth: Antibiotics do not prevent infection.',
+      'details_am':
+          'የተሳሳተ እሳቤ፡ ግንኙነት ካደረጉ በኋላ መታጠብ እርግዝናን ይከላከላል (ሀሰት)። ከግንኙነት በፊት መድኃኒት መውሰድ በሽታን ይከላከላል (ሀሰት)።',
+      'action_en':
+          'Always rely on clinical methods (condoms, modern contraception) rather than unverified cultural myths.',
+      'action_am':
+          'ከተሳሳቱ ወሬዎች ይልቅ በሳይንሳዊ መንገድ የተረጋገጡ የመከላከያ ዘዴዎችን (ኮንዶም እና ዘመናዊ የወሊድ መከላከያዎችን) ይጠቀሙ።',
+    },
+    {
+      'name_en': 'Emotional Wellbeing & Safety',
+      'name_am': 'የስነ-ልቦና ጤና እና ደህንነት',
+      'category_en': 'Wellbeing',
+      'category_am': 'ስነ-ልቦና',
+      'sub_en': 'Mental Health & Stigma Reduction',
+      'sub_am': 'የአእምሮ ጤና',
+      'tag_en': 'Youth-Friendly Support',
+      'tag_am': 'የወጣቶች ደህንነት',
+      'details_en':
+          'Anxiety about sexual health and stigma can cause severe emotional stress. Seeking healthcare is a responsible and mature step.',
+      'details_am':
+          'ስለ ወሲባዊ ጤና መጨነቅ ወይም መፍራት የተለመደ ነው። የጤና ምርመራ ማድረግና መረጃ መፈለግ ብልህነት እንጂ የሚያሳፍር ነገር አይደለም።',
+      'action_en':
+          'Confide in trained youth-friendly healthcare counselors. Remember you can call the free youth helpline at 8335.',
+      'action_am':
+          'ምስጢራቸው የተጠበቀ የጤና ባለሙያዎችን ያማክሩ። በነፃ የስልክ መስመር 8335 ደውለው ማናገር ይችላሉ።',
+    },
+  ];
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<bool>(
@@ -203,7 +347,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
           backgroundColor: AppColors.surface,
           appBar: AppBar(
             title: Text(
-              isAmharic ? 'የአባለዘር በሽታዎች እና የወሊድ መከላከያ' : 'STI & Contraception Library',
+              isAmharic ? 'የጤና መረጃ ቤተ-መጽሐፍት' : 'Health Knowledge Library',
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -214,151 +358,65 @@ class _LibraryScreenState extends State<LibraryScreen> {
           body: SafeArea(
             child: Column(
               children: [
-                // Search & Filter header section
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                  color: AppColors.surface,
-                  child: Column(
-                    children: [
-                      // Search Input
-                      TextField(
-                        onChanged: (val) =>
-                            setState(() => _searchQuery = val.toLowerCase()),
-                        decoration: InputDecoration(
-                          hintText: isAmharic
-                              ? 'በሽታዎችን ወይም የወሊድ መከላከያ ይፈልጉ...'
-                              : 'Search conditions or contraceptives...',
-                          hintStyle: const TextStyle(fontSize: 13, color: AppColors.outline),
-                          prefixIcon: const Icon(Icons.search, color: AppColors.outline, size: 20),
-                          suffixIcon: _searchQuery.isNotEmpty
-                              ? IconButton(
-                                  icon: const Icon(Icons.clear, size: 18),
-                                  onPressed: () => setState(() => _searchQuery = ''),
-                                )
-                              : null,
-                          filled: true,
-                          fillColor: AppColors.surfaceContainerLowest,
-                          contentPadding:
-                              const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
+                // Top Search Bar
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
+                  child: TextField(
+                    onChanged: (val) =>
+                        setState(() => _searchQuery = val.toLowerCase()),
+                    decoration: InputDecoration(
+                      hintText: isAmharic
+                          ? 'በርዕስ፣ ምልክት ወይም መድሃኒት ይፈልጉ...'
+                          : 'Search conditions, symptoms, or methods...',
+                      hintStyle:
+                          const TextStyle(fontSize: 13, color: AppColors.outline),
+                      prefixIcon: const Icon(Icons.search,
+                          color: AppColors.outline, size: 20),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear, size: 18),
+                              onPressed: () => setState(() => _searchQuery = ''),
+                            )
+                          : null,
+                      filled: true,
+                      fillColor: AppColors.surfaceContainerLowest,
+                      contentPadding:
+                          const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
                       ),
-                      const SizedBox(height: 10),
-
-                      // Category Switcher: STI vs Contraception
-                      Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.surfaceContainerHigh,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: InkWell(
-                                onTap: () => setState(() {
-                                  _selectedTab = 0;
-                                  _selectedFilter = 'All';
-                                }),
-                                borderRadius: BorderRadius.circular(12),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 10),
-                                  decoration: BoxDecoration(
-                                    color: _selectedTab == 0
-                                        ? AppColors.primary
-                                        : Colors.transparent,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  alignment: Alignment.center,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.shield_outlined,
-                                        size: 16,
-                                        color: _selectedTab == 0
-                                            ? Colors.white
-                                            : AppColors.onSurfaceVariant,
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        isAmharic ? 'የአባለዘር በሽታዎች' : 'STIs',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                          color: _selectedTab == 0
-                                              ? Colors.white
-                                              : AppColors.onSurfaceVariant,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              child: InkWell(
-                                onTap: () => setState(() {
-                                  _selectedTab = 1;
-                                  _selectedFilter = 'All';
-                                }),
-                                borderRadius: BorderRadius.circular(12),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 10),
-                                  decoration: BoxDecoration(
-                                    color: _selectedTab == 1
-                                        ? AppColors.primary
-                                        : Colors.transparent,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  alignment: Alignment.center,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.medication_outlined,
-                                        size: 16,
-                                        color: _selectedTab == 1
-                                            ? Colors.white
-                                            : AppColors.onSurfaceVariant,
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        isAmharic ? 'የወሊድ መከላከያ' : 'Contraception',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                          color: _selectedTab == 1
-                                              ? Colors.white
-                                              : AppColors.onSurfaceVariant,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-
-                      // Filter Chips
-                      _buildFilterChips(isAmharic),
-                    ],
+                    ),
                   ),
                 ),
 
-                // Scrollable List of Information Cards
+                // 4-Category Swipeable Tab Bar
+                _buildSwipeableTabBar(isAmharic),
+
+                // Dynamic Filter Chips
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                  child: _buildFilterChips(isAmharic),
+                ),
+
+                // Swipeable PageView Container
                 Expanded(
-                  child: ListView(
+                  child: PageView(
+                    controller: _pageController,
                     physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                    children: _selectedTab == 0
-                        ? _buildStiList(isAmharic)
-                        : _buildContraList(isAmharic),
+                    onPageChanged: (index) {
+                      setState(() {
+                        _selectedTab = index;
+                        _selectedFilter = 'All';
+                      });
+                    },
+                    children: [
+                      _buildStiList(isAmharic),
+                      _buildContraList(isAmharic),
+                      _buildMenstrualList(isAmharic),
+                      _buildSexualHealthList(isAmharic),
+                    ],
                   ),
                 ),
               ],
@@ -369,19 +427,102 @@ class _LibraryScreenState extends State<LibraryScreen> {
     );
   }
 
+  /// Compact horizontal category tab bar with active indicator
+  Widget _buildSwipeableTabBar(bool isAmharic) {
+    final tabs = isAmharic
+        ? [
+            {'icon': Icons.shield_outlined, 'label': 'STIs'},
+            {'icon': Icons.medication_outlined, 'label': 'የወሊድ መከላከያ'},
+            {'icon': Icons.water_drop_outlined, 'label': 'የወር አበባ ጤና'},
+            {'icon': Icons.favorite_outline, 'label': 'የጾታ ጤና'},
+          ]
+        : [
+            {'icon': Icons.shield_outlined, 'label': 'STIs'},
+            {'icon': Icons.medication_outlined, 'label': 'Contraception'},
+            {'icon': Icons.water_drop_outlined, 'label': 'Menstrual'},
+            {'icon': Icons.favorite_outline, 'label': 'Sexual Health'},
+          ];
+
+    return Container(
+      height: 44,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: List.generate(tabs.length, (index) {
+          final isSelected = _selectedTab == index;
+          final tab = tabs[index];
+          return Expanded(
+            child: InkWell(
+              onTap: () => _onTabSelected(index),
+              borderRadius: BorderRadius.circular(12),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppColors.primary : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                alignment: Alignment.center,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      tab['icon'] as IconData,
+                      size: 14,
+                      color: isSelected ? Colors.white : AppColors.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        tab['label'] as String,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.w600,
+                          color: isSelected
+                              ? Colors.white
+                              : AppColors.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
   Widget _buildFilterChips(bool isAmharic) {
-    final chips = _selectedTab == 0
-        ? (isAmharic
-            ? ['All', 'ባክቴሪያል', 'ቫይራል', 'የሚድኑ', 'ነፃ ምርመራ']
-            : ['All', 'Bacterial', 'Viral', 'Curable', 'Free Testing'])
-        : (isAmharic
-            ? ['All', 'ኮንዶም', 'ረጅም ጊዜ', 'ድንገተኛ', 'አጭር ጊዜ']
-            : ['All', 'Barrier', 'LARC', 'Emergency', 'Short-term']);
+    List<String> chips;
+    if (_selectedTab == 0) {
+      chips = isAmharic
+          ? ['All', 'ባክቴሪያል', 'ቫይራል', 'የሚድኑ', 'ነፃ ምርመራ']
+          : ['All', 'Bacterial', 'Viral', 'Curable', 'Free Testing'];
+    } else if (_selectedTab == 1) {
+      chips = isAmharic
+          ? ['All', 'ኮንዶም', 'ረጅም ጊዜ', 'ድንገተኛ', 'አጭር ጊዜ']
+          : ['All', 'Barrier', 'LARC', 'Emergency', 'Short-term'];
+    } else if (_selectedTab == 2) {
+      chips = isAmharic
+          ? ['All', 'ምልክቶች', 'ሆርሞናል', 'ንፅህና']
+          : ['All', 'Symptoms', 'Hormonal', 'Hygiene'];
+    } else {
+      chips = isAmharic
+          ? ['All', 'ግንኙነት', 'እውነታዎች', 'ስነ-ልቦና']
+          : ['All', 'Relationships', 'Myths', 'Wellbeing'];
+    }
 
     return SizedBox(
-      height: 36,
+      height: 34,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount: chips.length,
         separatorBuilder: (_, _) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
@@ -408,7 +549,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
     );
   }
 
-  List<Widget> _buildStiList(bool isAmharic) {
+  // Page 0: STIs
+  Widget _buildStiList(bool isAmharic) {
     final filtered = _stiItems.where((item) {
       final name = isAmharic ? item['name_am'] : item['name_en'];
       final sub = isAmharic ? item['sub_am'] : item['sub_en'];
@@ -433,158 +575,154 @@ class _LibraryScreenState extends State<LibraryScreen> {
     }).toList();
 
     if (filtered.isEmpty) {
-      return [
-        Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32.0),
-            child: Text(
-              isAmharic
-                  ? 'ምንም መረጃ አልተገኘም።'
-                  : 'No matching entries found.',
-              style: const TextStyle(color: AppColors.onSurfaceVariant),
-            ),
-          ),
-        ),
-      ];
+      return _buildEmptyState(isAmharic);
     }
 
-    return filtered.map((item) {
-      final name = isAmharic ? item['name_am'] : item['name_en'];
-      final sub = isAmharic ? item['sub_am'] : item['sub_en'];
-      final type = isAmharic ? item['type_am'] : item['type_en'];
-      final tag = isAmharic ? item['tag_am'] : item['tag_en'];
-      final transmission =
-          isAmharic ? item['transmission_am'] : item['transmission_en'];
-      final prevention =
-          isAmharic ? item['prevention_am'] : item['prevention_en'];
-      final access = isAmharic ? item['access_am'] : item['access_en'];
+    return ListView.builder(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      itemCount: filtered.length,
+      itemBuilder: (context, index) {
+        final item = filtered[index];
+        final name = isAmharic ? item['name_am'] : item['name_en'];
+        final sub = isAmharic ? item['sub_am'] : item['sub_en'];
+        final type = isAmharic ? item['type_am'] : item['type_en'];
+        final tag = isAmharic ? item['tag_am'] : item['tag_en'];
+        final transmission =
+            isAmharic ? item['transmission_am'] : item['transmission_en'];
+        final prevention =
+            isAmharic ? item['prevention_am'] : item['prevention_en'];
+        final access = isAmharic ? item['access_am'] : item['access_en'];
 
-      return Card(
-        margin: const EdgeInsets.only(bottom: 14),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          name,
+        return Card(
+          margin: const EdgeInsets.only(bottom: 14),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            name,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          Text(
+                            sub,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.secondaryContainer,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        type,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.onSecondaryContainer,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.check_circle_outline,
+                          size: 16, color: AppColors.secondary),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          tag,
                           style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.secondary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  '${isAmharic ? 'እንዴት ይተላለፋል? ' : 'Transmission: '}$transmission',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.onSurface,
+                    height: 1.35,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${isAmharic ? 'መከላከያ፡ ' : 'Prevention: '}$prevention',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.onSurfaceVariant,
+                    height: 1.35,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceContainer,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.local_hospital,
+                          size: 16, color: AppColors.primary),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '${isAmharic ? 'በኢትዮጵያ የት ይመረመራል? ' : 'Testing in Ethiopia: '}$access',
+                          style: const TextStyle(
+                            fontSize: 11,
                             color: AppColors.primary,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                        Text(
-                          sub,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.secondaryContainer,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      type,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.onSecondaryContainer,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceContainerLow,
-                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.check_circle_outline,
-                        size: 16, color: AppColors.secondary),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        tag,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.secondary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                '${isAmharic ? 'እንዴት ይተላለፋል? ' : 'Transmission: '}$transmission',
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.onSurface,
-                  height: 1.35,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '${isAmharic ? 'መከላከያ፡ ' : 'Prevention: '}$prevention',
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.onSurfaceVariant,
-                  height: 1.35,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceContainer,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(Icons.local_hospital,
-                        size: 16, color: AppColors.primary),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        '${isAmharic ? 'በኢትዮጵያ የት ይመረመራል? ' : 'Testing in Ethiopia: '}$access',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      );
-    }).toList();
+        );
+      },
+    );
   }
 
-  List<Widget> _buildContraList(bool isAmharic) {
+  // Page 1: Contraception
+  Widget _buildContraList(bool isAmharic) {
     final filtered = _contraItems.where((item) {
       final name = isAmharic ? item['name_am'] : item['name_en'];
       final details = isAmharic ? item['details_am'] : item['details_en'];
@@ -609,103 +747,394 @@ class _LibraryScreenState extends State<LibraryScreen> {
       return true;
     }).toList();
 
-    return filtered.map((item) {
-      final name = isAmharic ? item['name_am'] : item['name_en'];
-      final sub = isAmharic ? item['sub_am'] : item['sub_en'];
-      final effectiveness =
-          isAmharic ? item['effectiveness_am'] : item['effectiveness_en'];
-      final details = isAmharic ? item['details_am'] : item['details_en'];
-      final access = isAmharic ? item['access_am'] : item['access_en'];
+    if (filtered.isEmpty) {
+      return _buildEmptyState(isAmharic);
+    }
 
-      return Card(
-        margin: const EdgeInsets.only(bottom: 14),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          name,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
+    return ListView.builder(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      itemCount: filtered.length,
+      itemBuilder: (context, index) {
+        final item = filtered[index];
+        final name = isAmharic ? item['name_am'] : item['name_en'];
+        final sub = isAmharic ? item['sub_am'] : item['sub_en'];
+        final effectiveness =
+            isAmharic ? item['effectiveness_am'] : item['effectiveness_en'];
+        final details = isAmharic ? item['details_am'] : item['details_en'];
+        final access = isAmharic ? item['access_am'] : item['access_en'];
+
+        return Card(
+          margin: const EdgeInsets.only(bottom: 14),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            name,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
                           ),
-                        ),
-                        Text(
-                          sub,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.secondary,
-                            fontWeight: FontWeight.w500,
+                          Text(
+                            sub,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.secondary,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryContainer,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      effectiveness,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        ],
                       ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Text(
-                details,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.onSurfaceVariant,
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceContainerLow,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(Icons.location_on_outlined,
-                        size: 16, color: AppColors.secondary),
-                    const SizedBox(width: 6),
-                    Expanded(
+                    Container(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryContainer,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                       child: Text(
-                        '${isAmharic ? 'የት ይገኛል? ' : 'Where to access: '}$access',
+                        effectiveness,
                         style: const TextStyle(
                           fontSize: 11,
-                          color: AppColors.onSurface,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
                       ),
                     ),
                   ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 10),
+                Text(
+                  details,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.onSurfaceVariant,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.location_on_outlined,
+                          size: 16, color: AppColors.secondary),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          '${isAmharic ? 'የት ይገኛል? ' : 'Where to access: '}$access',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.onSurface,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-      );
+        );
+      },
+    );
+  }
+
+  // Page 2: Menstrual Health
+  Widget _buildMenstrualList(bool isAmharic) {
+    final filtered = _menstrualItems.where((item) {
+      final name = isAmharic ? item['name_am'] : item['name_en'];
+      final details = isAmharic ? item['details_am'] : item['details_en'];
+      final matchesSearch =
+          name.toString().toLowerCase().contains(_searchQuery) ||
+              details.toString().toLowerCase().contains(_searchQuery);
+      if (!matchesSearch) return false;
+
+      if (_selectedFilter == 'All') return true;
+      if (_selectedFilter == 'Symptoms' || _selectedFilter == 'ምልክቶች') {
+        return item['category_en'] == 'Symptoms';
+      }
+      if (_selectedFilter == 'Hormonal' || _selectedFilter == 'ሆርሞናል') {
+        return item['category_en'] == 'Hormonal';
+      }
+      if (_selectedFilter == 'Hygiene' || _selectedFilter == 'ንፅህና') {
+        return item['category_en'] == 'Hygiene';
+      }
+      return true;
     }).toList();
+
+    if (filtered.isEmpty) {
+      return _buildEmptyState(isAmharic);
+    }
+
+    return ListView.builder(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      itemCount: filtered.length,
+      itemBuilder: (context, index) {
+        final item = filtered[index];
+        final name = isAmharic ? item['name_am'] : item['name_en'];
+        final sub = isAmharic ? item['sub_am'] : item['sub_en'];
+        final tag = isAmharic ? item['tag_am'] : item['tag_en'];
+        final details = isAmharic ? item['details_am'] : item['details_en'];
+        final action = isAmharic ? item['action_am'] : item['action_en'];
+
+        return Card(
+          margin: const EdgeInsets.only(bottom: 14),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            name,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          Text(
+                            sub,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.secondary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.secondaryContainer,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        tag,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.onSecondaryContainer,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  details,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.onSurfaceVariant,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.tips_and_updates_outlined,
+                          size: 16, color: AppColors.secondary),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          '${isAmharic ? 'የእርምጃ ምክር፡ ' : 'Self-Care Action: '}$action',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.onSurface,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // Page 3: Sexual Health & Relationships
+  Widget _buildSexualHealthList(bool isAmharic) {
+    final filtered = _sexualHealthItems.where((item) {
+      final name = isAmharic ? item['name_am'] : item['name_en'];
+      final details = isAmharic ? item['details_am'] : item['details_en'];
+      final matchesSearch =
+          name.toString().toLowerCase().contains(_searchQuery) ||
+              details.toString().toLowerCase().contains(_searchQuery);
+      if (!matchesSearch) return false;
+
+      if (_selectedFilter == 'All') return true;
+      if (_selectedFilter == 'Relationships' || _selectedFilter == 'ግንኙነት') {
+        return item['category_en'] == 'Relationships';
+      }
+      if (_selectedFilter == 'Myths' || _selectedFilter == 'እውነታዎች') {
+        return item['category_en'] == 'Myths';
+      }
+      if (_selectedFilter == 'Wellbeing' || _selectedFilter == 'ስነ-ልቦና') {
+        return item['category_en'] == 'Wellbeing';
+      }
+      return true;
+    }).toList();
+
+    if (filtered.isEmpty) {
+      return _buildEmptyState(isAmharic);
+    }
+
+    return ListView.builder(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      itemCount: filtered.length,
+      itemBuilder: (context, index) {
+        final item = filtered[index];
+        final name = isAmharic ? item['name_am'] : item['name_en'];
+        final sub = isAmharic ? item['sub_am'] : item['sub_en'];
+        final tag = isAmharic ? item['tag_am'] : item['tag_en'];
+        final details = isAmharic ? item['details_am'] : item['details_en'];
+        final action = isAmharic ? item['action_am'] : item['action_en'];
+
+        return Card(
+          margin: const EdgeInsets.only(bottom: 14),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            name,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          Text(
+                            sub,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.secondary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.secondaryContainer,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        tag,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.onSecondaryContainer,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  details,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.onSurfaceVariant,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.favorite_outline,
+                          size: 16, color: AppColors.secondary),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          '${isAmharic ? 'የእውቀት ነጥብ፡ ' : 'Key Takeaway: '}$action',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.onSurface,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildEmptyState(bool isAmharic) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Text(
+          isAmharic
+              ? 'ምንም መረጃ አልተገኘም።'
+              : 'No matching entries found.',
+          style: const TextStyle(color: AppColors.onSurfaceVariant),
+        ),
+      ),
+    );
   }
 }
