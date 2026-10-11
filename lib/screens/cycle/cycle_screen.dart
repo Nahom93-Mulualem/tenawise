@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import '../../core/localization/app_language.dart';
 import '../../core/theme/app_colors.dart';
 
 /// Interactive Period & Cycle Calculator screen.
-/// Implements 100% client-side privacy calculations for estimating
-/// the next period arrival, fertile window, and cycle phase breakdown.
+/// 100% English when English is selected; 100% Amharic when Amharic is selected.
+/// Responsive and client-side only.
 class CycleScreen extends StatefulWidget {
   const CycleScreen({super.key});
 
@@ -17,11 +18,14 @@ class _CycleScreenState extends State<CycleScreen> {
   double _cycleLength = 28;
   bool _showGuide = false;
 
-  DateTime get _nextPeriodDate => _lastPeriodDate.add(Duration(days: _cycleLength.toInt()));
-  DateTime get _nextPeriodEndDate => _nextPeriodDate.add(Duration(days: _periodDuration.toInt()));
+  DateTime get _nextPeriodDate =>
+      _lastPeriodDate.add(Duration(days: _cycleLength.toInt()));
+  DateTime get _nextPeriodEndDate =>
+      _nextPeriodDate.add(Duration(days: _periodDuration.toInt()));
   int get _daysRemaining => _nextPeriodDate.difference(DateTime.now()).inDays;
 
-  DateTime get _ovulationDate => _nextPeriodDate.subtract(const Duration(days: 14));
+  DateTime get _ovulationDate =>
+      _nextPeriodDate.subtract(const Duration(days: 14));
   DateTime get _fertileStart => _ovulationDate.subtract(const Duration(days: 4));
   DateTime get _fertileEnd => _ovulationDate.add(const Duration(days: 1));
 
@@ -35,104 +39,92 @@ class _CycleScreenState extends State<CycleScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surface,
-      appBar: AppBar(
-        title: const Text(
-          'Period Calculator (የወር አበባ አስሊ)',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: AppColors.primary,
-          ),
-        ),
-      ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Privacy Shield Notice
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-              decoration: BoxDecoration(
-                color: AppColors.secondaryContainer,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.shield, size: 16, color: AppColors.secondary),
-                  SizedBox(width: 6),
-                  Text(
-                    '100% Client-Side Privacy: No data leaves your phone',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.onSecondaryContainer,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Header text
-            const Text(
-              'Track Your Cycle Confidentially',
-              style: TextStyle(
-                fontSize: 22,
+    return ValueListenableBuilder<bool>(
+      valueListenable: AppLanguage.isAmharicNotifier,
+      builder: (context, isAmharic, _) {
+        return Scaffold(
+          backgroundColor: AppColors.surface,
+          appBar: AppBar(
+            title: Text(
+              isAmharic ? 'የወር አበባ አስሊ' : 'Period Calculator',
+              style: const TextStyle(
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: AppColors.primary,
               ),
             ),
-            const SizedBox(height: 4),
-            const Text(
-              'Estimate when your next cycle begins, anticipate fertile windows, and understand natural hormonal rhythms.',
-              style: TextStyle(
-                fontSize: 13,
-                color: AppColors.onSurfaceVariant,
-                height: 1.4,
+          ),
+          body: SafeArea(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header text
+                  Text(
+                    isAmharic
+                        ? 'የወር አበባ ዑደትዎን ይከታተሉ'
+                        : 'Track Your Cycle Confidentially',
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    isAmharic
+                        ? 'ቀጣዩ የወር አበባ የሚጀምርበትን ቀን፣ የመራባት ጊዜን እና ተፈጥሯዊ የሆርሞን ዑደትን ይረዱ።'
+                        : 'Estimate when your next cycle begins, anticipate fertile windows, and understand natural hormonal rhythms.',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.onSurfaceVariant,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+
+                  // Cycle Input Controls Card
+                  _buildInputsCard(isAmharic),
+                  const SizedBox(height: 20),
+
+                  // Cycle Forecast & Timeline Section
+                  _buildForecastCard(isAmharic),
+                  const SizedBox(height: 20),
+
+                  // Phase Breakdown & Tips
+                  _buildPhaseBreakdown(isAmharic),
+                  const SizedBox(height: 24),
+                ],
               ),
             ),
-            const SizedBox(height: 18),
-
-            // Cycle Input Controls
-            _buildInputsCard(),
-            const SizedBox(height: 20),
-
-            // Cycle Forecast & Timeline Section
-            _buildForecastCard(),
-            const SizedBox(height: 20),
-
-            // Phase Breakdown & Tips
-            _buildPhaseBreakdown(),
-            const SizedBox(height: 30),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildInputsCard() {
+  Widget _buildInputsCard(bool isAmharic) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
+        border: Border.all(
+          color: AppColors.outlineVariant.withValues(alpha: 0.4),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.calendar_month, color: AppColors.primary, size: 20),
-              SizedBox(width: 8),
+              const Icon(Icons.calendar_month, color: AppColors.primary, size: 20),
+              const SizedBox(width: 8),
               Text(
-                'Your Cycle Inputs',
-                style: TextStyle(
+                isAmharic ? 'የዑደት መረጃዎች' : 'Your Cycle Inputs',
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.primary,
@@ -143,9 +135,13 @@ class _CycleScreenState extends State<CycleScreen> {
           const SizedBox(height: 16),
 
           // Input 1: Last Period Date
-          const Text(
-            'First day of last period (የጀመረበት ቀን):',
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.onSurface),
+          Text(
+            isAmharic ? 'የጀመረበት ቀን:' : 'First day of last period:',
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.onSurface,
+            ),
           ),
           const SizedBox(height: 6),
           InkWell(
@@ -189,9 +185,13 @@ class _CycleScreenState extends State<CycleScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Period duration (የቆየበት ቀናት):',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.onSurface),
+              Text(
+                isAmharic ? 'የቆየበት ቀናት:' : 'Period duration:',
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.onSurface,
+                ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
@@ -200,8 +200,12 @@ class _CycleScreenState extends State<CycleScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  '${_periodDuration.toInt()} Days',
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primary),
+                  '${_periodDuration.toInt()} ${isAmharic ? 'ቀናት' : 'Days'}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
+                  ),
                 ),
               ),
             ],
@@ -220,9 +224,13 @@ class _CycleScreenState extends State<CycleScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Average cycle length (የዑደት ርዝመት):',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.onSurface),
+              Text(
+                isAmharic ? 'የዑደት ርዝመት:' : 'Average cycle length:',
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.onSurface,
+                ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
@@ -231,8 +239,12 @@ class _CycleScreenState extends State<CycleScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  '${_cycleLength.toInt()} Days',
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                  '${_cycleLength.toInt()} ${isAmharic ? 'ቀናት' : 'Days'}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ],
@@ -254,13 +266,23 @@ class _CycleScreenState extends State<CycleScreen> {
               children: [
                 const Icon(Icons.help_outline, size: 16, color: AppColors.secondary),
                 const SizedBox(width: 6),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'How do I calculate cycle length? (እንዴት ማስላት እችላለሁ?)',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.secondary),
+                    isAmharic
+                        ? 'እንዴት ማስላት እችላለሁ?'
+                        : 'How do I calculate cycle length?',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.secondary,
+                    ),
                   ),
                 ),
-                Icon(_showGuide ? Icons.expand_less : Icons.expand_more, size: 20, color: AppColors.secondary),
+                Icon(
+                  _showGuide ? Icons.expand_less : Icons.expand_more,
+                  size: 20,
+                  color: AppColors.secondary,
+                ),
               ],
             ),
           ),
@@ -272,9 +294,15 @@ class _CycleScreenState extends State<CycleScreen> {
                 color: AppColors.surfaceContainerLow,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Text(
-                'Cycle length is the count from Day 1 of your period until the day before your next period begins (usually 24–35 days in healthy youth).',
-                style: TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant, height: 1.4),
+              child: Text(
+                isAmharic
+                    ? 'የዑደት ርዝመት ማለት የወር አበባ ከጀመረበት ቀን አንስቶ የሚቀጥለው እስኪመጣ ያለው የቀናት ብዛት ነው (ብዙውን ጊዜ ከ24 እስከ 35 ቀናት)።'
+                    : 'Cycle length is the count from Day 1 of your period until the day before your next period begins (usually 24–35 days in healthy youth).',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.onSurfaceVariant,
+                  height: 1.4,
+                ),
               ),
             ),
           ],
@@ -283,13 +311,15 @@ class _CycleScreenState extends State<CycleScreen> {
     );
   }
 
-  Widget _buildForecastCard() {
+  Widget _buildForecastCard(bool isAmharic) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
+        border: Border.all(
+          color: AppColors.outlineVariant.withValues(alpha: 0.4),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -297,48 +327,65 @@ class _CycleScreenState extends State<CycleScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'ESTIMATED FORECAST',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.0,
-                      color: AppColors.secondary,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isAmharic ? 'የተገመተ ትንበያ' : 'ESTIMATED FORECAST',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.0,
+                        color: AppColors.secondary,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${_formatDate(_nextPeriodDate)} – ${_formatDate(_nextPeriodEndDate)}',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
+                    const SizedBox(height: 4),
+                    Text(
+                      '${_formatDate(_nextPeriodDate)} – ${_formatDate(_nextPeriodEndDate)}',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
                     ),
-                  ),
-                  Text(
-                    _daysRemaining >= 0
-                        ? 'Estimated arrival in ~$_daysRemaining days'
-                        : 'Cycle started ~${_daysRemaining.abs()} days ago',
-                    style: const TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant),
-                  ),
-                ],
+                    Text(
+                      _daysRemaining >= 0
+                          ? (isAmharic
+                              ? 'በ ~$_daysRemaining ቀናት ውስጥ ይጀምራል ተብሎ ይጠበቃል'
+                              : 'Estimated arrival in ~$_daysRemaining days')
+                          : (isAmharic
+                              ? 'ዑደቱ ከ ~${_daysRemaining.abs()} ቀናት በፊት ጀምሯል'
+                              : 'Cycle started ~${_daysRemaining.abs()} days ago'),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const CircleAvatar(
                 radius: 24,
                 backgroundColor: AppColors.secondaryContainer,
-                child: Icon(Icons.water_drop, color: AppColors.onSecondaryContainer, size: 26),
+                child: Icon(
+                  Icons.water_drop,
+                  color: AppColors.onSecondaryContainer,
+                  size: 26,
+                ),
               ),
             ],
           ),
           const SizedBox(height: 18),
 
           // Cycle Visual Progress Bar
-          const Text(
-            'Cycle Architecture (Overview)',
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primary),
+          Text(
+            isAmharic ? 'የዑደት ደረጃዎች' : 'Cycle Architecture (Overview)',
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: AppColors.primary,
+            ),
           ),
           const SizedBox(height: 8),
           ClipRRect(
@@ -362,10 +409,10 @@ class _CycleScreenState extends State<CycleScreen> {
             spacing: 12,
             runSpacing: 6,
             children: [
-              _buildLegendDot(AppColors.tertiaryContainer, 'Bleeding'),
-              _buildLegendDot(AppColors.primaryContainer, 'Follicular'),
-              _buildLegendDot(AppColors.secondary, 'Fertile Window'),
-              _buildLegendDot(AppColors.surfaceDim, 'Luteal'),
+              _buildLegendDot(AppColors.tertiaryContainer, isAmharic ? 'የደም መፍሰስ' : 'Bleeding'),
+              _buildLegendDot(AppColors.primaryContainer, isAmharic ? 'የእንቁላል ማደግ' : 'Follicular'),
+              _buildLegendDot(AppColors.secondary, isAmharic ? 'የመራባት ቀናት' : 'Fertile Window'),
+              _buildLegendDot(AppColors.surfaceDim, isAmharic ? 'የሉቲያል ደረጃ' : 'Luteal'),
             ],
           ),
         ],
@@ -377,30 +424,41 @@ class _CycleScreenState extends State<CycleScreen> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
         const SizedBox(width: 4),
-        Text(label, style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant),
+        ),
       ],
     );
   }
 
-  Widget _buildPhaseBreakdown() {
+  Widget _buildPhaseBreakdown(bool isAmharic) {
     return Column(
       children: [
         _buildInfoTile(
           icon: Icons.favorite_border,
           color: AppColors.secondary,
-          title: 'Fertile Window (የመራባት ቀናት)',
+          title: isAmharic ? 'የመራባት ቀናት' : 'Fertile Window',
           subtitle: '${_formatDate(_fertileStart)} – ${_formatDate(_fertileEnd)}',
-          desc: 'High probability of conception. Use barrier methods if wishing to prevent pregnancy.',
+          desc: isAmharic
+              ? 'እርግዝና የመፈጠር ዕድሉ ከፍተኛ ነው። ጥንቃቄ ያድርጉ።'
+              : 'High probability of conception. Use barrier methods if wishing to prevent pregnancy.',
         ),
         const SizedBox(height: 10),
         _buildInfoTile(
           icon: Icons.lightbulb_outline,
           color: AppColors.primary,
-          title: 'Daily Symptom Hygiene',
-          subtitle: 'Hydration & Nutrition',
-          desc: 'Drink plenty of water and maintain iron-rich meals (lentils, spinach) during menstruation.',
+          title: isAmharic ? 'የንፅህና እና ጤና ምክር' : 'Daily Symptom Hygiene',
+          subtitle: isAmharic ? 'ውሃ እና የተመጣጠነ ምግብ' : 'Hydration & Nutrition',
+          desc: isAmharic
+              ? 'በቂ ውሃ ይጠጡ እና በብረት የበለፀጉ ምግቦችን (ምስር፣ ቆስጣ) ይመገቡ።'
+              : 'Drink plenty of water and maintain iron-rich meals (lentils, spinach) during menstruation.',
         ),
       ],
     );
@@ -418,7 +476,9 @@ class _CycleScreenState extends State<CycleScreen> {
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
+        border: Border.all(
+          color: AppColors.outlineVariant.withValues(alpha: 0.4),
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -433,10 +493,31 @@ class _CycleScreenState extends State<CycleScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.primary)),
-                Text(subtitle, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color)),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
+                  ),
+                ),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text(desc, style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant, height: 1.3)),
+                Text(
+                  desc,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.onSurfaceVariant,
+                    height: 1.3,
+                  ),
+                ),
               ],
             ),
           ),

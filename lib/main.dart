@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'core/localization/app_language.dart';
 import 'core/theme/app_theme.dart';
 import 'screens/main_shell_screen.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await AppLanguage.init();
   runApp(const TenaWiseApp());
 }
 

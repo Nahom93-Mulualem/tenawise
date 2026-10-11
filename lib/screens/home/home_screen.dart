@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../core/localization/app_language.dart';
 import '../../core/theme/app_colors.dart';
 
 /// The Home / Education Hub screen.
-/// Serves as the landing dashboard welcoming Ethiopian youth with
-/// evidence-based reproductive health information in both English and Amharic.
+/// 100% English by default. When the 🌐 icon is tapped, switches to 100% Amharic.
+/// Designed with fully responsive components for all screen sizes.
 class HomeScreen extends StatelessWidget {
   /// Callback to switch tabs from within cards/buttons on the home screen
   final void Function(int tabIndex)? onNavigateToTab;
@@ -12,119 +14,101 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surface,
-      appBar: _buildCustomHeader(context),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Evidence-informed Pill Badge
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.secondaryContainer.withValues(alpha: 0.7),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
+    return ValueListenableBuilder<bool>(
+      valueListenable: AppLanguage.isAmharicNotifier,
+      builder: (context, isAmharic, _) {
+        return Scaffold(
+          backgroundColor: AppColors.surface,
+          appBar: _buildCustomHeader(context, isAmharic),
+          body: SafeArea(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.verified_user_outlined, size: 16, color: AppColors.secondary),
-                  SizedBox(width: 6),
+                  // Headline
                   Text(
-                    'Evidence-informed • በማስረጃ የተደገፈ',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.onSecondaryContainer,
+                    isAmharic
+                        ? 'የእርስዎ ጤና። የእርስዎ እውቀት። የእርስዎ ምርጫ።'
+                        : 'Your health. Your knowledge. Your choice.',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                      letterSpacing: -0.5,
+                      height: 1.2,
                     ),
                   ),
+                  const SizedBox(height: 16),
+
+                  // Hero Highlight Card
+                  _buildHeroCard(isAmharic),
+                  const SizedBox(height: 14),
+
+                  // Supporting description
+                  Text(
+                    isAmharic
+                        ? 'ለኢትዮጵያውያን ወጣቶች የተዘጋጀ ታማኝና በቀላሉ የሚረዳ የሥነ-ተዋልዶ ጤና መረጃ ማዕከል፤ ስለ ጤናዎ በግልጽ ይማሩ።'
+                        : 'Learn about sexual and reproductive health through trusted, easy-to-understand information designed for young people in Ethiopia.',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppColors.onSurfaceVariant,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Quick Call-to-Action Buttons
+                  _buildActionButtons(isAmharic),
+                  const SizedBox(height: 28),
+
+                  // Topic Categories Title
+                  Text(
+                    isAmharic
+                        ? 'ምን ማወቅ ይፈልጋሉ?'
+                        : 'What would you like to learn about?',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    isAmharic
+                        ? 'ከታች ከተዘረዘሩት ርእሶች አንዱን ይምረጡ'
+                        : 'Select a topic below to begin exploring',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Responsive 2x2 Grid for Topic Exploration
+                  _buildTopicGrid(isAmharic),
+                  const SizedBox(height: 24),
+
+                  // Interactive Tool Banner: Cycle Tracker
+                  _buildCycleBanner(isAmharic),
+                  const SizedBox(height: 24),
+
+                  // Safe Clinic Helpline Notice
+                  _buildHelplineCard(context, isAmharic),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
-            const SizedBox(height: 14),
-
-            // Bilingual Headline
-            const Text(
-              'Your health. Your knowledge. Your choice.',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: AppColors.primary,
-                letterSpacing: -0.5,
-                height: 1.2,
-              ),
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'የእርስዎ ጤና። የእርስዎ እውቀት። የእርስዎ ምርጫ።',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: AppColors.secondary,
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Hero Highlight Card
-            _buildHeroCard(),
-            const SizedBox(height: 14),
-
-            // Supporting description
-            const Text(
-              'Learn about sexual and reproductive health through trusted, easy-to-understand information designed for young people in Ethiopia.',
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.onSurfaceVariant,
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Quick Call-to-Action Buttons
-            _buildActionButtons(),
-            const SizedBox(height: 28),
-
-            // Topic Categories Title
-            const Text(
-              'What would you like to learn about?',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: AppColors.primary,
-              ),
-            ),
-            const Text(
-              'ምን ማወቅ ይፈልጋሉ?',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: AppColors.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 14),
-
-            // 2x2 Grid for Topic Exploration
-            _buildTopicGrid(),
-            const SizedBox(height: 24),
-
-            // Interactive Tool Banner: Cycle Tracker
-            _buildCycleBanner(),
-            const SizedBox(height: 24),
-
-            // Safe Clinic Hotline Notice
-            _buildHelplineCard(),
-            const SizedBox(height: 30),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
-  /// Custom top navigation bar matching the Stitch layout
-  PreferredSizeWidget _buildCustomHeader(BuildContext context) {
+  /// Custom top navigation bar featuring the language switch toggle
+  PreferredSizeWidget _buildCustomHeader(BuildContext context, bool isAmharic) {
     return AppBar(
       titleSpacing: 12,
       title: Row(
@@ -144,16 +128,20 @@ class HomeScreen extends StatelessWidget {
                   color: AppColors.primaryContainer,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.favorite, color: Colors.white, size: 20),
+                child: const Icon(
+                  Icons.favorite,
+                  color: Colors.white,
+                  size: 20,
+                ),
               ),
             ),
           ),
-          const SizedBox(width: 8),
-          const Column(
+          const SizedBox(width: 10),
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
+              const Text(
                 'TenaWise',
                 style: TextStyle(
                   fontSize: 18,
@@ -162,8 +150,8 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               Text(
-                'ጤናማ እውቀት፣ ጥበብ ያለው ምርጫ',
-                style: TextStyle(
+                isAmharic ? 'ጥበብ ያለው ምርጫ' : 'Wise Choices',
+                style: const TextStyle(
                   fontSize: 10,
                   color: AppColors.onSurfaceVariant,
                 ),
@@ -173,31 +161,29 @@ class HomeScreen extends StatelessWidget {
         ],
       ),
       actions: [
-        // Quick Privacy Exit Button (ደህንነቴ)
+        // Language Toggle: displays 🌐 in English, አማ in Amharic
         Padding(
-          padding: const EdgeInsets.only(right: 8.0),
-          child: FilledButton.tonal(
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.error,
-              foregroundColor: AppColors.onError,
+          padding: const EdgeInsets.only(right: 12.0),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: () => AppLanguage.toggleLanguage(),
+            child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              minimumSize: const Size(0, 34),
-            ),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Quick Exit / ደህንነቴ activated for privacy.'),
-                  duration: Duration(seconds: 2),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceContainerHigh,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: AppColors.outlineVariant.withValues(alpha: 0.5),
                 ),
-              );
-            },
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.logout, size: 14),
-                SizedBox(width: 4),
-                Text('ደህንነቴ', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-              ],
+              ),
+              child: Text(
+                isAmharic ? 'አማ' : '🌐',
+                style: TextStyle(
+                  fontSize: isAmharic ? 13 : 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
+                ),
+              ),
             ),
           ),
         ),
@@ -205,20 +191,17 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeroCard() {
+  Widget _buildHeroCard(bool isAmharic) {
     return Container(
       width: double.infinity,
-      height: 180,
+      constraints: const BoxConstraints(minHeight: 160),
       decoration: BoxDecoration(
         color: AppColors.primaryContainer,
         borderRadius: BorderRadius.circular(16),
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            AppColors.primary,
-            AppColors.primaryContainer,
-          ],
+          colors: [AppColors.primary, AppColors.primaryContainer],
         ),
       ),
       child: Stack(
@@ -236,46 +219,29 @@ class HomeScreen extends StatelessWidget {
             padding: const EdgeInsets.all(18.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.lock_outline, size: 13, color: Colors.white),
-                      SizedBox(width: 5),
-                      Text(
-                        '100% Anonymous & Confidential',
-                        style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
-                      ),
-                    ],
+                const SizedBox(height: 20),
+                Text(
+                  isAmharic
+                      ? 'ደህንነቱ የተጠበቀ፣ ከአድሎ ነፃ ማዕከል'
+                      : 'Safe, Stigma-Free Space',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 19,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Safe, Stigma-Free Space',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 19,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Ask questions, track cycles & explore healthcare options safely.',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
+                const SizedBox(height: 6),
+                Text(
+                  isAmharic
+                      ? 'ጥያቄዎችን ይጠይቁ፣ የወር አበባዎን ይከታተሉ እንዲሁም የጤና መረጃዎችን ያግኙ።'
+                      : 'Ask questions, track cycles & explore healthcare options safely.',
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 13,
+                    height: 1.35,
+                  ),
                 ),
               ],
             ),
@@ -285,7 +251,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButtons() {
+  Widget _buildActionButtons(bool isAmharic) {
     return Column(
       children: [
         SizedBox(
@@ -293,12 +259,12 @@ class HomeScreen extends StatelessWidget {
           height: 48,
           child: ElevatedButton(
             onPressed: () => onNavigateToTab?.call(2), // Switch to Library
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('Start Learning (ትምህርት ጀምር)'),
-                SizedBox(width: 8),
-                Icon(Icons.arrow_forward, size: 18),
+                Text(isAmharic ? 'ትምህርት ጀምር' : 'Start Learning'),
+                const SizedBox(width: 8),
+                const Icon(Icons.arrow_forward, size: 18),
               ],
             ),
           ),
@@ -311,17 +277,23 @@ class HomeScreen extends StatelessWidget {
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.secondaryContainer,
               foregroundColor: AppColors.onSecondaryContainer,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             onPressed: () => onNavigateToTab?.call(3), // Switch to AI Assistant
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.auto_awesome, size: 18, color: AppColors.secondary),
-                SizedBox(width: 8),
+                const Icon(
+                  Icons.question_answer_outlined,
+                  size: 18,
+                  color: AppColors.secondary,
+                ),
+                const SizedBox(width: 8),
                 Text(
-                  'Ask TenaWise AI (አስስ)',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  isAmharic ? 'ጤና ዋይዝን ጠይቁ' : 'Ask TenaWise',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -331,120 +303,151 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTopicGrid() {
-    final topics = [
-      {
-        'emoji': '🦠',
-        'title': 'STIs',
-        'amharic': 'የአባለዘር በሽታዎች',
-        'desc': 'Symptoms, testing, prevention and treatment.',
-        'tab': 2,
-      },
-      {
-        'emoji': '💊',
-        'title': 'Contraception',
-        'amharic': 'የእርግዝና መከላከያ',
-        'desc': 'Methods, effectiveness, myths and access.',
-        'tab': 2,
-      },
-      {
-        'emoji': '🩸',
-        'title': 'Menstrual Health',
-        'amharic': 'የወር አበባ ጤና',
-        'desc': 'Cycles, hygiene, PMS and tracking rhythms.',
-        'tab': 1,
-      },
-      {
-        'emoji': '❤️',
-        'title': 'Sexual Health',
-        'amharic': 'የጾታ ጤና',
-        'desc': 'Healthy relationships, consent & wellbeing.',
-        'tab': 2,
-      },
-    ];
+  Widget _buildTopicGrid(bool isAmharic) {
+    final topics = isAmharic
+        ? [
+            {
+              'emoji': '🦠',
+              'title': 'የአባለዘር በሽታዎች',
+              'desc': 'ምልክቶች፣ ምርመራ፣ መከላከያ እና ህክምና።',
+              'tab': 2,
+            },
+            {
+              'emoji': '💊',
+              'title': 'የእርግዝና መከላከያ',
+              'desc': 'ዘዴዎች፣ ውጤታማነት እና የት እንደሚገኝ።',
+              'tab': 2,
+            },
+            {
+              'emoji': '🩸',
+              'title': 'የወር አበባ ጤና',
+              'desc': 'ዑደቶች፣ ንፅህና እና የቀን ስሌት።',
+              'tab': 1,
+            },
+            {
+              'emoji': '❤️',
+              'title': 'የጾታ ጤና',
+              'desc': 'ጤናማ ግንኙነቶች፣ ፈቃደኝነት እና ደህንነት።',
+              'tab': 2,
+            },
+          ]
+        : [
+            {
+              'emoji': '🦠',
+              'title': 'STIs',
+              'desc': 'Symptoms, testing, prevention and treatment.',
+              'tab': 2,
+            },
+            {
+              'emoji': '💊',
+              'title': 'Contraception',
+              'desc': 'Methods, effectiveness, myths and access.',
+              'tab': 2,
+            },
+            {
+              'emoji': '🩸',
+              'title': 'Menstrual Health',
+              'desc': 'Cycles, hygiene, PMS and tracking rhythms.',
+              'tab': 1,
+            },
+            {
+              'emoji': '❤️',
+              'title': 'Sexual Health',
+              'desc': 'Healthy relationships, consent & wellbeing.',
+              'tab': 2,
+            },
+          ];
 
-    return GridView.builder(
-      physics: const NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 10,
-        crossAxisSpacing: 10,
-        childAspectRatio: 1.05,
-      ),
-      itemCount: topics.length,
-      itemBuilder: (context, index) {
-        final item = topics[index];
-        return InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: () => onNavigateToTab?.call(item['tab'] as int),
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceContainerLowest,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(item['emoji'] as String, style: const TextStyle(fontSize: 24)),
-                    const SizedBox(height: 6),
-                    Text(
-                      item['title'] as String,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    Text(
-                      item['amharic'] as String,
-                      style: const TextStyle(
-                        fontSize: 10,
-                        color: AppColors.secondary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      item['desc'] as String,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: AppColors.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-                const Row(
-                  children: [
-                    Text(
-                      'Explore',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.secondary,
-                      ),
-                    ),
-                    SizedBox(width: 4),
-                    Icon(Icons.arrow_forward, size: 12, color: AppColors.secondary),
-                  ],
-                ),
-              ],
-            ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxWidth < 360;
+        final aspectRatio = isCompact ? 0.95 : 1.05;
+
+        return GridView.builder(
+          physics: const NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            mainAxisSpacing: 10,
+            crossAxisSpacing: 10,
+            childAspectRatio: aspectRatio,
           ),
+          itemCount: topics.length,
+          itemBuilder: (context, index) {
+            final item = topics[index];
+            return InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: () => onNavigateToTab?.call(item['tab'] as int),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceContainerLowest,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: AppColors.outlineVariant.withValues(alpha: 0.4),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item['emoji'] as String,
+                          style: const TextStyle(fontSize: 24),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          item['title'] as String,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          item['desc'] as String,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Text(
+                          isAmharic ? 'ይመልከቱ' : 'Explore',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.secondary,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.arrow_forward,
+                          size: 12,
+                          color: AppColors.secondary,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         );
       },
     );
   }
 
-  Widget _buildCycleBanner() {
+  Widget _buildCycleBanner(bool isAmharic) {
     return InkWell(
       borderRadius: BorderRadius.circular(14),
       onTap: () => onNavigateToTab?.call(1), // Switch to Cycle Tracker
@@ -455,30 +458,37 @@ class HomeScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: AppColors.secondaryContainer),
         ),
-        child: const Row(
+        child: Row(
           children: [
-            CircleAvatar(
+            const CircleAvatar(
               radius: 24,
               backgroundColor: AppColors.secondaryContainer,
-              child: Icon(Icons.calendar_month, color: AppColors.onSecondaryContainer),
+              child: Icon(
+                Icons.calendar_month,
+                color: AppColors.onSecondaryContainer,
+              ),
             ),
-            SizedBox(width: 14),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Period & Cycle Calculator',
-                    style: TextStyle(
+                    isAmharic
+                        ? 'የወር አበባ እና የዑደት አስሊ'
+                        : 'Period & Cycle Calculator',
+                    style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                       color: AppColors.primary,
                     ),
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Text(
-                    'Calculate fertile windows and next arrival date privately.',
-                    style: TextStyle(
+                    isAmharic
+                        ? 'የመራባት ቀናትንና ቀጣዩን ቀን በሚስጥር ያስሉ።'
+                        : 'Calculate fertile windows and next arrival date privately.',
+                    style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.onSurfaceVariant,
                     ),
@@ -486,47 +496,110 @@ class HomeScreen extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, color: AppColors.primary),
+            const Icon(Icons.chevron_right, color: AppColors.primary),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHelplineCard() {
+  Future<void> _makePhoneCall(String phoneNumber, BuildContext context) async {
+    final Uri launchUri = Uri(
+      scheme: 'tel',
+      path: phoneNumber,
+    );
+    try {
+      if (await canLaunchUrl(launchUri)) {
+        await launchUrl(launchUri);
+      } else {
+        await launchUrl(launchUri, mode: LaunchMode.externalApplication);
+      }
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not open phone dialer for $phoneNumber')),
+        );
+      }
+    }
+  }
+
+  Widget _buildHelplineCard(BuildContext context, bool isAmharic) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: const Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.support_agent, color: AppColors.secondary, size: 22),
-          SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Free Ethiopian Confidential Helplines',
-                  style: TextStyle(
-                    fontSize: 13,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.support_agent, color: AppColors.secondary, size: 22),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isAmharic
+                          ? 'ነፃ ሚስጥራዊ የእርዳታ መስመሮች'
+                          : 'Free Ethiopian Confidential Helplines',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      isAmharic
+                          ? 'የድንገተኛ አደጋ (PEP በ72 ሰዓታት) ወይም የወጣቶች የጤና ምክር፡ ቁጥሮቹን በመንካት በቀጥታ ይደውሉ።'
+                          : 'Emergency post-exposure (PEP within 72h) or youth counseling. Tap a number to dial directly:',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppColors.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              ActionChip(
+                avatar: const Icon(Icons.phone_in_talk, size: 14, color: AppColors.primary),
+                label: Text(
+                  isAmharic ? '8335 (የወጣቶች ምክር)' : '8335 (Youth Hotline)',
+                  style: const TextStyle(
+                    fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: AppColors.primary,
                   ),
                 ),
-                SizedBox(height: 2),
-                Text(
-                  'Emergency Post-exposure (PEP within 72h) or youth counseling: Call 8335 or 8044.',
-                  style: TextStyle(
+                backgroundColor: AppColors.surfaceContainerLowest,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                onPressed: () => _makePhoneCall('8335', context),
+              ),
+              const SizedBox(width: 8),
+              ActionChip(
+                avatar: const Icon(Icons.phone_in_talk, size: 14, color: AppColors.secondary),
+                label: Text(
+                  isAmharic ? '8044 (ድንገተኛ PEP)' : '8044 (Emergency PEP)',
+                  style: const TextStyle(
                     fontSize: 11,
-                    color: AppColors.onSurfaceVariant,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.secondary,
                   ),
                 ),
-              ],
-            ),
+                backgroundColor: AppColors.surfaceContainerLowest,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                onPressed: () => _makePhoneCall('8044', context),
+              ),
+            ],
           ),
         ],
       ),
