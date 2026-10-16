@@ -48,7 +48,11 @@ class AppTheme {
         color: AppColors.surfaceContainerLowest,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
+          side: BorderSide(
+            color: AppColors.outlineVariant.withValues(alpha: 0.35),
+            width: 1.0,
+          ),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(

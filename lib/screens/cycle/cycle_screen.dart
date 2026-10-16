@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/localization/app_language.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/staggered_entrance.dart';
+import '../../core/widgets/tactile_card.dart';
 
 /// Interactive Period & Cycle Calculator screen.
 /// 100% English when English is selected; 100% Amharic when Amharic is selected.
@@ -61,40 +63,57 @@ class _CycleScreenState extends State<CycleScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header text
-                  Text(
-                    isAmharic
-                        ? 'የወር አበባ ዑደትዎን ይከታተሉ'
-                        : 'Track Your Cycle Confidentially',
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    isAmharic
-                        ? 'ቀጣዩ የወር አበባ የሚጀምርበትን ቀን፣ የመራባት ጊዜን እና ተፈጥሯዊ የሆርሞን ዑደትን ይረዱ።'
-                        : 'Estimate when your next cycle begins, anticipate fertile windows, and understand natural hormonal rhythms.',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: AppColors.onSurfaceVariant,
-                      height: 1.4,
+                  StaggeredEntrance(
+                    index: 0,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isAmharic
+                              ? 'የወር አበባ ዑደትዎን ይከታተሉ'
+                              : 'Track Your Cycle Confidentially',
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                            letterSpacing: -0.4,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          isAmharic
+                              ? 'ቀጣዩ የወር አበባ የሚጀምርበትን ቀን፣ የመራባት ጊዜን እና ተፈጥሯዊ የሆርሞን ዑደትን ይረዱ።'
+                              : 'Estimate when your next cycle begins, anticipate fertile windows, and understand natural hormonal rhythms.',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: AppColors.onSurfaceVariant,
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 18),
 
                   // Cycle Input Controls Card
-                  _buildInputsCard(isAmharic),
+                  StaggeredEntrance(
+                    index: 1,
+                    child: _buildInputsCard(isAmharic),
+                  ),
                   const SizedBox(height: 20),
 
                   // Cycle Forecast & Timeline Section
-                  _buildForecastCard(isAmharic),
+                  StaggeredEntrance(
+                    index: 2,
+                    child: _buildForecastCard(isAmharic),
+                  ),
                   const SizedBox(height: 20),
 
                   // Phase Breakdown & Tips
-                  _buildPhaseBreakdown(isAmharic),
+                  StaggeredEntrance(
+                    index: 3,
+                    child: _buildPhaseBreakdown(isAmharic),
+                  ),
                   const SizedBox(height: 24),
                 ],
               ),
@@ -144,7 +163,8 @@ class _CycleScreenState extends State<CycleScreen> {
             ),
           ),
           const SizedBox(height: 6),
-          InkWell(
+          TactileCard(
+            pressedScale: 0.98,
             borderRadius: BorderRadius.circular(10),
             onTap: () async {
               final picked = await showDatePicker(
@@ -162,6 +182,9 @@ class _CycleScreenState extends State<CycleScreen> {
               decoration: BoxDecoration(
                 color: AppColors.surfaceContainerLow,
                 borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: AppColors.outlineVariant.withValues(alpha: 0.3),
+                ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
