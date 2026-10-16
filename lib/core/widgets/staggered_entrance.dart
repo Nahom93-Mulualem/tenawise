@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 
 /// A fluid Apple-style staggered slide and fade animation wrapper.
@@ -33,6 +34,7 @@ class _StaggeredEntranceState extends State<StaggeredEntrance>
   late final AnimationController _controller;
   late final Animation<double> _fadeAnimation;
   late final Animation<Offset> _slideAnimation;
+  Timer? _timer;
 
   @override
   void initState() {
@@ -54,7 +56,7 @@ class _StaggeredEntranceState extends State<StaggeredEntrance>
     ).animate(curve);
 
     final delay = widget.baseDelay + (widget.staggerInterval * widget.index);
-    Future.delayed(delay, () {
+    _timer = Timer(delay, () {
       if (mounted) {
         _controller.forward();
       }
@@ -63,6 +65,7 @@ class _StaggeredEntranceState extends State<StaggeredEntrance>
 
   @override
   void dispose() {
+    _timer?.cancel();
     _controller.dispose();
     super.dispose();
   }

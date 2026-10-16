@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/localization/app_language.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/language_switch.dart';
 import '../../core/widgets/staggered_entrance.dart';
 import '../../core/widgets/tactile_card.dart';
 
@@ -200,42 +201,9 @@ class HomeScreen extends StatelessWidget {
         ],
       ),
       actions: [
-        // Tactile Language Toggle: displays EN or አማ
         Padding(
           padding: const EdgeInsets.only(right: 14.0),
-          child: TactileCard(
-            pressedScale: 0.92,
-            onTap: () => AppLanguage.toggleLanguage(),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceContainerHigh,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: AppColors.outlineVariant.withValues(alpha: 0.6),
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    isAmharic ? 'አማ' : 'EN',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  const Icon(
-                    Icons.language,
-                    size: 15,
-                    color: AppColors.primary,
-                  ),
-                ],
-              ),
-            ),
-          ),
+          child: LanguageSegmentedSwitch(isAmharic: isAmharic),
         ),
       ],
     );
