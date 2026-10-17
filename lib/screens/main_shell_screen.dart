@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/localization/app_language.dart';
 import '../core/theme/app_colors.dart';
+import '../core/widgets/fade_indexed_stack.dart';
 import 'home/home_screen.dart';
 import 'cycle/cycle_screen.dart';
 import 'library/library_screen.dart';
@@ -9,7 +10,8 @@ import 'assistant/assistant_screen.dart';
 
 /// MainShellScreen hosts the primary bottom navigation bar and coordinates
 /// state preservation across all four core modules of TenaWise.
-/// Enhanced with Apple-style tactile haptic selection feedback.
+/// Enhanced with Apple-style tactile haptic selection feedback and fluid
+/// cross-fade transitions between modules.
 class MainShellScreen extends StatefulWidget {
   const MainShellScreen({super.key});
 
@@ -35,8 +37,8 @@ class _MainShellScreenState extends State<MainShellScreen> {
       valueListenable: AppLanguage.isAmharicNotifier,
       builder: (context, isAmharic, _) {
         return Scaffold(
-          // IndexedStack preserves state across screens (scroll positions, form inputs, etc.)
-          body: IndexedStack(
+          // FadeIndexedStack preserves state while smoothly cross-fading and gliding between tabs
+          body: FadeIndexedStack(
             index: _currentIndex,
             children: [
               HomeScreen(onNavigateToTab: _onTabSelected),

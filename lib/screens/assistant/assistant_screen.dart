@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/localization/app_language.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/staggered_entrance.dart';
 import '../../core/widgets/tactile_card.dart';
 
 /// Ask TenaWise Mobile Assistant Screen.
@@ -242,49 +243,52 @@ class _AssistantScreenState extends State<AssistantScreen> {
             child: Column(
               children: [
                 // Suggested Prompts Carousel with TactileCards
-                Container(
-                  height: 48,
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: prompts.length,
-                    separatorBuilder: (_, _) => const SizedBox(width: 8),
-                    itemBuilder: (context, index) {
-                      final prompt = prompts[index];
-                      return TactileCard(
-                        pressedScale: 0.94,
-                        onTap: () => _sendMessage(prompt, isAmharic),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: AppColors.surfaceContainerLowest,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: AppColors.outlineVariant.withValues(alpha: 0.5),
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.03),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
+                StaggeredEntrance(
+                  index: 0,
+                  child: Container(
+                    height: 48,
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: prompts.length,
+                      separatorBuilder: (_, _) => const SizedBox(width: 8),
+                      itemBuilder: (context, index) {
+                        final prompt = prompts[index];
+                        return TactileCard(
+                          pressedScale: 0.94,
+                          onTap: () => _sendMessage(prompt, isAmharic),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceContainerLowest,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: AppColors.outlineVariant.withValues(alpha: 0.5),
                               ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Text(
-                              prompt,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.primary,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.03),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Center(
+                              child: Text(
+                                prompt,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primary,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
                 ),
 

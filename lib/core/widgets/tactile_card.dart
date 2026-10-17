@@ -19,6 +19,8 @@ class TactileCard extends StatefulWidget {
   final List<BoxShadow>? boxShadow;
   final EdgeInsetsGeometry? padding;
   final bool enableHaptics;
+  final bool enableHover;
+  final double hoverOffsetY;
 
   const TactileCard({
     super.key,
@@ -32,6 +34,8 @@ class TactileCard extends StatefulWidget {
     this.boxShadow,
     this.padding,
     this.enableHaptics = true,
+    this.enableHover = true,
+    this.hoverOffsetY = -3.0,
   });
 
   @override
@@ -42,6 +46,8 @@ class _TactileCardState extends State<TactileCard>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _scaleAnimation;
+  bool _isHovered = false;
+  bool _isPressed = false;
 
   @override
   void initState() {
@@ -72,6 +78,7 @@ class _TactileCardState extends State<TactileCard>
 
   void _onTapDown(TapDownDetails details) {
     if (widget.onTap == null) return;
+    setState(() => _isPressed = true);
     if (widget.enableHaptics) {
       HapticFeedback.lightImpact();
     }
@@ -80,13 +87,41 @@ class _TactileCardState extends State<TactileCard>
 
   void _onTapUp(TapUpDetails details) {
     if (widget.onTap == null) return;
+    setState(() => _isPressed = false);
     _controller.reverse();
     widget.onTap!();
   }
 
   void _onTapCancel() {
     if (widget.onTap == null) return;
+    setState(() => _isPressed = false);
     _controller.reverse();
+  }
+
+  List<BoxShadow>? _computeShadows() {
+    final isElevated = _isHovered && !_isPressed && widget.onTap != null && widget.enableHover;
+    if (widget.boxShadow != null) {
+      if (!isElevated) return widget.boxShadow;
+      return widget.boxShadow!.map((s) {
+        return BoxShadow(
+          color: s.color.withValues(alpha: (s.color.a * 1.35).clamp(0.0, 1.0)),
+          blurRadius: s.blurRadius + 6,
+          spreadRadius: s.spreadRadius + 1,
+          offset: Offset(s.offset.dx, s.offset.dy + 2),
+        );
+      }).toList();
+    }
+    if (isElevated) {
+      return [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.08),
+          blurRadius: 10,
+          spreadRadius: 1,
+          offset: const Offset(0, 4),
+        ),
+      ];
+    }
+    return null;
   }
 
   @override
@@ -100,17 +135,37 @@ class _TactileCardState extends State<TactileCard>
       );
     }
 
+    final isElevated = _isHovered && !_isPressed && widget.onTap != null && widget.enableHover;
+    final currentShadows = _computeShadows();
+
     if (widget.color != null ||
         widget.border != null ||
-        widget.boxShadow != null ||
+        currentShadows != null ||
         widget.borderRadius != null) {
       content = AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOutCubic,
+        transform: Matrix4.translationValues(
+          0,
+          isElevated ? widget.hoverOffsetY : 0.0,
+          0,
+        ),
         decoration: BoxDecoration(
           color: widget.color,
           borderRadius: widget.borderRadius,
           border: widget.border,
-          boxShadow: widget.boxShadow,
+          boxShadow: currentShadows,
+        ),
+        child: content,
+      );
+    } else if (isElevated) {
+      content = AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOutCubic,
+        transform: Matrix4.translationValues(
+          0,
+          widget.hoverOffsetY,
+          0,
         ),
         child: content,
       );
@@ -120,20 +175,25 @@ class _TactileCardState extends State<TactileCard>
       return content;
     }
 
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTapDown: _onTapDown,
-      onTapUp: _onTapUp,
-      onTapCancel: _onTapCancel,
-      child: AnimatedBuilder(
-        animation: _scaleAnimation,
-        builder: (context, child) {
-          return Transform.scale(
-            scale: _scaleAnimation.value,
-            child: child,
-          );
-        },
-        child: content,
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: _onTapDown,
+        onTapUp: _onTapUp,
+        onTapCancel: _onTapCancel,
+        child: AnimatedBuilder(
+          animation: _scaleAnimation,
+          builder: (context, child) {
+            return Transform.scale(
+              scale: _scaleAnimation.value,
+              child: child,
+            );
+          },
+          child: content,
+        ),
       ),
     );
   }

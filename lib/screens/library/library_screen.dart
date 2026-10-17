@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/localization/app_language.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/staggered_entrance.dart';
+import '../../core/widgets/tactile_card.dart';
 
 /// STI & Contraceptive Library screen.
 /// 100% English when English is selected; 100% Amharic when Amharic is selected.
@@ -40,6 +42,162 @@ class _LibraryScreenState extends State<LibraryScreen> {
       index,
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
+    );
+  }
+
+  void _showDetailSheet(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required String category,
+    required List<Map<String, String>> sections,
+    required bool isAmharic,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(ctx).size.height * 0.85,
+          ),
+          decoration: const BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: AppColors.outlineVariant.withValues(alpha: 0.6),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                title,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                subtitle,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: AppColors.secondaryContainer,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            category,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.onSecondaryContainer,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    const Divider(height: 1),
+                    const SizedBox(height: 16),
+                    ...sections.map((sec) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 14.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              sec['heading']!,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              sec['body']!,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: AppColors.onSurface,
+                                height: 1.45,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryContainer.withValues(alpha: 0.25),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.2),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.phone_in_talk, color: AppColors.primary, size: 20),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              isAmharic
+                                  ? 'ተጨማሪ ሚስጥራዊ መረጃ ይፈልጋሉ? በነፃ የጤና ስልክ መስመር 8335 ይደውሉ።'
+                                  : 'Need confidential counseling? Call free youth helpline 8335.',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -359,45 +517,54 @@ class _LibraryScreenState extends State<LibraryScreen> {
             child: Column(
               children: [
                 // Top Search Bar
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
-                  child: TextField(
-                    onChanged: (val) =>
-                        setState(() => _searchQuery = val.toLowerCase()),
-                    decoration: InputDecoration(
-                      hintText: isAmharic
-                          ? 'በርዕስ፣ ምልክት ወይም መድሃኒት ይፈልጉ...'
-                          : 'Search conditions, symptoms, or methods...',
-                      hintStyle:
-                          const TextStyle(fontSize: 13, color: AppColors.outline),
-                      prefixIcon: const Icon(Icons.search,
-                          color: AppColors.outline, size: 20),
-                      suffixIcon: _searchQuery.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear, size: 18),
-                              onPressed: () => setState(() => _searchQuery = ''),
-                            )
-                          : null,
-                      filled: true,
-                      fillColor: AppColors.surfaceContainerLowest,
-                      contentPadding:
-                          const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
+                StaggeredEntrance(
+                  index: 0,
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
+                    child: TextField(
+                      onChanged: (val) =>
+                          setState(() => _searchQuery = val.toLowerCase()),
+                      decoration: InputDecoration(
+                        hintText: isAmharic
+                            ? 'በርዕስ፣ ምልክት ወይም መድሃኒት ይፈልጉ...'
+                            : 'Search conditions, symptoms, or methods...',
+                        hintStyle:
+                            const TextStyle(fontSize: 13, color: AppColors.outline),
+                        prefixIcon: const Icon(Icons.search,
+                            color: AppColors.outline, size: 20),
+                        suffixIcon: _searchQuery.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear, size: 18),
+                                onPressed: () => setState(() => _searchQuery = ''),
+                              )
+                            : null,
+                        filled: true,
+                        fillColor: AppColors.surfaceContainerLowest,
+                        contentPadding:
+                            const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
                       ),
                     ),
                   ),
                 ),
 
                 // 4-Category Swipeable Tab Bar
-                _buildSwipeableTabBar(isAmharic),
+                StaggeredEntrance(
+                  index: 1,
+                  child: _buildSwipeableTabBar(isAmharic),
+                ),
 
                 // Dynamic Filter Chips
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4.0),
-                  child: _buildFilterChips(isAmharic),
+                StaggeredEntrance(
+                  index: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
+                    child: _buildFilterChips(isAmharic),
+                  ),
                 ),
 
                 // Swipeable PageView Container
@@ -594,126 +761,156 @@ class _LibraryScreenState extends State<LibraryScreen> {
             isAmharic ? item['prevention_am'] : item['prevention_en'];
         final access = isAmharic ? item['access_am'] : item['access_en'];
 
-        return Card(
-          margin: const EdgeInsets.only(bottom: 14),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            name,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                          Text(
-                            sub,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.secondaryContainer,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        type,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.onSecondaryContainer,
-                        ),
-                      ),
-                    ),
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 14),
+          child: StaggeredEntrance(
+            index: (index + 3).clamp(0, 8),
+            child: TactileCard(
+              onTap: () {
+                _showDetailSheet(
+                  context,
+                  title: name,
+                  subtitle: sub,
+                  category: type,
+                  isAmharic: isAmharic,
+                  sections: [
+                    {'heading': isAmharic ? 'የህክምና ሁኔታ' : 'Clinical Status', 'body': tag},
+                    {'heading': isAmharic ? 'እንዴት ይተላለፋል?' : 'Transmission Mode', 'body': transmission},
+                    {'heading': isAmharic ? 'መከላከያ ዘዴዎች' : 'Prevention & Safe Practice', 'body': prevention},
+                    {'heading': isAmharic ? 'በኢትዮጵያ የት ይመረመራል?' : 'Testing & Care in Ethiopia', 'body': access},
                   ],
-                ),
-                const SizedBox(height: 10),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceContainerLow,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.check_circle_outline,
-                          size: 16, color: AppColors.secondary),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          tag,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.secondary,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  '${isAmharic ? 'እንዴት ይተላለፋል? ' : 'Transmission: '}$transmission',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.onSurface,
-                    height: 1.35,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${isAmharic ? 'መከላከያ፡ ' : 'Prevention: '}$prevention',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.onSurfaceVariant,
-                    height: 1.35,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceContainer,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(Icons.local_hospital,
-                          size: 16, color: AppColors.primary),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          '${isAmharic ? 'በኢትዮጵያ የት ይመረመራል? ' : 'Testing in Ethiopia: '}$access',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                );
+              },
+              borderRadius: BorderRadius.circular(16),
+              color: AppColors.surfaceContainerLowest,
+              border: Border.all(
+                color: AppColors.outlineVariant.withValues(alpha: 0.35),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
                 ),
               ],
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              name,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                            Text(
+                              sub,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.secondaryContainer,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          type,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.onSecondaryContainer,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.check_circle_outline,
+                            size: 16, color: AppColors.secondary),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            tag,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.secondary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    '${isAmharic ? 'እንዴት ይተላለፋል? ' : 'Transmission: '}$transmission',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.onSurface,
+                      height: 1.35,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${isAmharic ? 'መከላከያ፡ ' : 'Prevention: '}$prevention',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.onSurfaceVariant,
+                      height: 1.35,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceContainer,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.local_hospital,
+                            size: 16, color: AppColors.primary),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '${isAmharic ? 'በኢትዮጵያ የት ይመረመራል? ' : 'Testing in Ethiopia: '}$access',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -764,93 +961,122 @@ class _LibraryScreenState extends State<LibraryScreen> {
         final details = isAmharic ? item['details_am'] : item['details_en'];
         final access = isAmharic ? item['access_am'] : item['access_en'];
 
-        return Card(
-          margin: const EdgeInsets.only(bottom: 14),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            name,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primary,
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 14),
+          child: StaggeredEntrance(
+            index: (index + 3).clamp(0, 8),
+            child: TactileCard(
+              onTap: () {
+                _showDetailSheet(
+                  context,
+                  title: name,
+                  subtitle: sub,
+                  category: effectiveness,
+                  isAmharic: isAmharic,
+                  sections: [
+                    {'heading': isAmharic ? 'ውጤታማነት' : 'Effectiveness Rate', 'body': effectiveness},
+                    {'heading': isAmharic ? 'ዝርዝር መረጃ' : 'Method Description', 'body': details},
+                    {'heading': isAmharic ? 'በኢትዮጵያ የት ይገኛል?' : 'Availability in Ethiopia', 'body': access},
+                  ],
+                );
+              },
+              borderRadius: BorderRadius.circular(16),
+              color: AppColors.surfaceContainerLowest,
+              border: Border.all(
+                color: AppColors.outlineVariant.withValues(alpha: 0.35),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              name,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primary,
+                              ),
                             ),
-                          ),
-                          Text(
-                            sub,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.secondary,
-                              fontWeight: FontWeight.w500,
+                            Text(
+                              sub,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.secondary,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryContainer,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        effectiveness,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          ],
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  details,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.onSurfaceVariant,
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceContainerLow,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(Icons.location_on_outlined,
-                          size: 16, color: AppColors.secondary),
-                      const SizedBox(width: 6),
-                      Expanded(
+                      Container(
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryContainer,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                         child: Text(
-                          '${isAmharic ? 'የት ይገኛል? ' : 'Where to access: '}$access',
+                          effectiveness,
                           style: const TextStyle(
                             fontSize: 11,
-                            color: AppColors.onSurface,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
                         ),
                       ),
                     ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 10),
+                  Text(
+                    details,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.onSurfaceVariant,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.location_on_outlined,
+                            size: 16, color: AppColors.secondary),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            '${isAmharic ? 'የት ይገኛል? ' : 'Where to access: '}$access',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.onSurface,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -897,93 +1123,122 @@ class _LibraryScreenState extends State<LibraryScreen> {
         final details = isAmharic ? item['details_am'] : item['details_en'];
         final action = isAmharic ? item['action_am'] : item['action_en'];
 
-        return Card(
-          margin: const EdgeInsets.only(bottom: 14),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            name,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primary,
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 14),
+          child: StaggeredEntrance(
+            index: (index + 3).clamp(0, 8),
+            child: TactileCard(
+              onTap: () {
+                _showDetailSheet(
+                  context,
+                  title: name,
+                  subtitle: sub,
+                  category: tag,
+                  isAmharic: isAmharic,
+                  sections: [
+                    {'heading': isAmharic ? 'የስነ-ህይወት ምድብ' : 'Cycle Category', 'body': tag},
+                    {'heading': isAmharic ? 'ዝርዝር ማብራሪያ' : 'Explanation', 'body': details},
+                    {'heading': isAmharic ? 'የሚመከሩ እርምጃዎች' : 'Recommended Care', 'body': action},
+                  ],
+                );
+              },
+              borderRadius: BorderRadius.circular(16),
+              color: AppColors.surfaceContainerLowest,
+              border: Border.all(
+                color: AppColors.outlineVariant.withValues(alpha: 0.35),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              name,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primary,
+                              ),
                             ),
-                          ),
-                          Text(
-                            sub,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.secondary,
-                              fontWeight: FontWeight.w500,
+                            Text(
+                              sub,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.secondary,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.secondaryContainer,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        tag,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.onSecondaryContainer,
+                          ],
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  details,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.onSurfaceVariant,
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceContainerLow,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(Icons.tips_and_updates_outlined,
-                          size: 16, color: AppColors.secondary),
-                      const SizedBox(width: 6),
-                      Expanded(
+                      Container(
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.secondaryContainer,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                         child: Text(
-                          '${isAmharic ? 'የእርምጃ ምክር፡ ' : 'Self-Care Action: '}$action',
+                          tag,
                           style: const TextStyle(
                             fontSize: 11,
-                            color: AppColors.onSurface,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.onSecondaryContainer,
                           ),
                         ),
                       ),
                     ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 10),
+                  Text(
+                    details,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.onSurfaceVariant,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.tips_and_updates_outlined,
+                            size: 16, color: AppColors.secondary),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            '${isAmharic ? 'የእርምጃ ምክር፡ ' : 'Self-Care Action: '}$action',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.onSurface,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -1030,93 +1285,122 @@ class _LibraryScreenState extends State<LibraryScreen> {
         final details = isAmharic ? item['details_am'] : item['details_en'];
         final action = isAmharic ? item['action_am'] : item['action_en'];
 
-        return Card(
-          margin: const EdgeInsets.only(bottom: 14),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            name,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primary,
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 14),
+          child: StaggeredEntrance(
+            index: (index + 3).clamp(0, 8),
+            child: TactileCard(
+              onTap: () {
+                _showDetailSheet(
+                  context,
+                  title: name,
+                  subtitle: sub,
+                  category: tag,
+                  isAmharic: isAmharic,
+                  sections: [
+                    {'heading': isAmharic ? 'ምድብ' : 'Category', 'body': tag},
+                    {'heading': isAmharic ? 'ማብራሪያ' : 'Core Guidance', 'body': details},
+                    {'heading': isAmharic ? 'ምክርና ድጋፍ' : 'Advice & Support', 'body': action},
+                  ],
+                );
+              },
+              borderRadius: BorderRadius.circular(16),
+              color: AppColors.surfaceContainerLowest,
+              border: Border.all(
+                color: AppColors.outlineVariant.withValues(alpha: 0.35),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              name,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primary,
+                              ),
                             ),
-                          ),
-                          Text(
-                            sub,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.secondary,
-                              fontWeight: FontWeight.w500,
+                            Text(
+                              sub,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.secondary,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.secondaryContainer,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        tag,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.onSecondaryContainer,
+                          ],
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  details,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.onSurfaceVariant,
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceContainerLow,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(Icons.favorite_outline,
-                          size: 16, color: AppColors.secondary),
-                      const SizedBox(width: 6),
-                      Expanded(
+                      Container(
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.secondaryContainer,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                         child: Text(
-                          '${isAmharic ? 'የእውቀት ነጥብ፡ ' : 'Key Takeaway: '}$action',
+                          tag,
                           style: const TextStyle(
                             fontSize: 11,
-                            color: AppColors.onSurface,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.onSecondaryContainer,
                           ),
                         ),
                       ),
                     ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 10),
+                  Text(
+                    details,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.onSurfaceVariant,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.favorite_outline,
+                            size: 16, color: AppColors.secondary),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            '${isAmharic ? 'የእውቀት ነጥብ፡ ' : 'Key Takeaway: '}$action',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.onSurface,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
