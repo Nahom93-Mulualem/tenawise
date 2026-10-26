@@ -31,6 +31,72 @@
 
   <title>tenawise</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- Interactive Favicon Animation on Load & Focus -->
+  <script>
+    (function() {
+      var favicon = document.querySelector("link[rel*='icon']");
+      if (!favicon) {
+        favicon = document.createElement('link');
+        favicon.type = 'image/png';
+        favicon.rel = 'icon';
+        document.head.appendChild(favicon);
+      }
+      var canvas = document.createElement('canvas');
+      canvas.width = 64;
+      canvas.height = 64;
+      var ctx = canvas.getContext('2d');
+      var img = new Image();
+      img.src = 'favicon.png';
+
+      var frame = 0;
+      var animating = false;
+
+      function animateFavicon() {
+        if (!animating) return;
+        frame++;
+        ctx.clearRect(0, 0, 64, 64);
+        var scale = 0.88 + 0.12 * Math.sin(frame * 0.25);
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(32, 32, 28 * scale, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(1, 117, 194, 0.25)';
+        ctx.fill();
+
+        ctx.translate(32, 32);
+        ctx.scale(scale, scale);
+        ctx.drawImage(img, -24, -24, 48, 48);
+        ctx.restore();
+
+        favicon.href = canvas.toDataURL('image/png');
+
+        if (frame < 36) {
+          requestAnimationFrame(animateFavicon);
+        } else {
+          animating = false;
+          favicon.href = 'favicon.png';
+        }
+      }
+
+      function triggerAnimation() {
+        frame = 0;
+        if (!animating) {
+          animating = true;
+          animateFavicon();
+        }
+      }
+
+      img.onload = function() {
+        triggerAnimation();
+      };
+      window.addEventListener('focus', triggerAnimation);
+      document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'visible') {
+          triggerAnimation();
+        }
+      });
+    })();
+  </script>
 </head>
 <body>
   <!--

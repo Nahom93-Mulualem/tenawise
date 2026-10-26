@@ -1,16 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/localization/app_language.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/staggered_entrance.dart';
 import '../../core/widgets/tactile_card.dart';
+import 'chatbot_api_service.dart';
+
+class _ChatMessageItem {
+  final String sender; // 'user' or 'assistant'
+  final String text;
+  final String time;
+  final String? category;
+  final bool isUrgent;
+  final List<String> followUps;
+  final String? source;
+
+  _ChatMessageItem({
+    required this.sender,
+    required this.text,
+    required this.time,
+    this.category,
+    this.isUrgent = false,
+    this.followUps = const [],
+    this.source,
+  });
+}
 
 /// Ask TenaWise Mobile Assistant Screen.
 /// 100% English when English is selected; 100% Amharic when Amharic is selected.
-/// Features Apple & Emil Kowalski inspired chat animations:
+/// Features:
+/// - Trained SRH (Sexual & Reproductive Health) intelligence with Ethiopian youth context
+/// - Hybrid Python AI backend with instant offline knowledge engine fallback
+/// - Category badges & urgent PEP 72h / emergency alert badges
+/// - Interactive follow-up suggestion chips under answers
 /// - Staggered 3-dot bouncing typing indicator
 /// - Spring-animated chat bubble entry (scale & slide)
-/// - Tactile interactive prompt suggestion pills
-/// - Spring press feedback on send button
 class AssistantScreen extends StatefulWidget {
   const AssistantScreen({super.key});
 
@@ -22,7 +46,7 @@ class _AssistantScreenState extends State<AssistantScreen> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  final List<Map<String, String>> _messages = [];
+  final List<_ChatMessageItem> _messages = [];
   bool _isTyping = false;
 
   final List<String> _suggestedPromptsEn = [
@@ -31,6 +55,7 @@ class _AssistantScreenState extends State<AssistantScreen> {
     'Where can I find free condoms in Ethiopia?',
     'Is spotting normal with Depo-Provera?',
     'How to use Postpill correctly?',
+    'How to relieve painful period cramps?',
   ];
 
   final List<String> _suggestedPromptsAm = [
@@ -39,6 +64,7 @@ class _AssistantScreenState extends State<AssistantScreen> {
     'በኢትዮጵያ ነፃ ኮንዶም የት ይገኛል?',
     'የ3 ወር መርፌ የወር አበባን ያዛባል?',
     'Postpill እንዴት መወሰድ አለበት?',
+    'የወር አበባ ቁርጠት ማስታገሻዎች ምንድን ናቸው?',
   ];
 
   @override
@@ -57,85 +83,74 @@ class _AssistantScreenState extends State<AssistantScreen> {
   void _resetToGreeting(bool isAmharic) {
     _messages.clear();
     _isTyping = false;
-    _messages.add({
-      'sender': 'assistant',
-      'text': isAmharic
-          ? 'ሰላም! እኔ የጤና ዋይዝ የትምህርት አጋርዎ ነኝ። ስለ አባለዘር በሽታዎች፣ የወሊድ መከላከያ ዘዴዎች ወይም የወር አበባ ጤና ማንኛውንም ጥያቄ በነፃነት መጠየቅ ይችላሉ።'
-          : 'Hello! I am your TenaWise educational companion. You can ask me anything about STIs, contraception methods, menstrual health, or safe relationships confidentially.',
-      'time': isAmharic ? 'አሁን' : 'Just now',
-    });
+    _messages.add(
+      _ChatMessageItem(
+        sender: 'assistant',
+        text: isAmharic
+            ? 'ሰላም! እኔ የጤና ዋይዝ የትምህርት አጋርዎ ነኝ። ስለ አባለዘር በሽታዎች፣ የወሊድ መከላከያ ዘዴዎች (Postpill፣ የ3 ወር መርፌ፣ ጃዴል) ወይም የወር አበባ ጤና ማንኛውንም ጥያቄ በነፃነት እና በሚስጥር መጠየቅ ይችላሉ።'
+            : 'Hello! I am your TenaWise educational companion. You can ask me anything about STIs, contraception methods (Postpill, Depo-Provera, Implants), menstrual health, or safe relationships confidentially.',
+        time: isAmharic ? 'አሁን' : 'Just now',
+        category: isAmharic ? 'የስነ-ተዋልዶ ጤና አጋር' : 'SRH Companion',
+        source: isAmharic ? 'የተረጋገጠ መረጃ' : 'Verified Clinical Advice',
+        followUps: isAmharic
+            ? [
+                'ድንገተኛ የእርግዝና መከላከያ እንዴት ይሰራል?',
+                'የኤች.አይ.ቪ ምልክቶች ምንድን ናቸው?',
+                'የ3 ወር መርፌ የወር አበባን ያዛባል?'
+              ]
+            : [
+                'How does Postinor-2 work?',
+                'What are the symptoms of HIV?',
+                'Is spotting normal with Depo-Provera?'
+              ],
+      ),
+    );
   }
 
-  void _sendMessage(String text, bool isAmharic) {
+  Future<void> _sendMessage(String text, bool isAmharic) async {
     if (text.trim().isEmpty) return;
     final userMessage = text.trim();
 
     setState(() {
-      _messages.add({
-        'sender': 'user',
-        'text': userMessage,
-        'time': isAmharic ? 'አሁን' : 'Just now',
-      });
+      _messages.add(_ChatMessageItem(
+        sender: 'user',
+        text: userMessage,
+        time: isAmharic ? 'አሁን' : 'Just now',
+      ));
       _textController.clear();
       _isTyping = true;
     });
 
     _scrollToBottom();
 
-    // Simulated responsive AI guidance with realistic typing cadence
-    Future.delayed(const Duration(milliseconds: 900), () {
-      if (!mounted) return;
-      setState(() {
-        _isTyping = false;
-        _messages.add({
-          'sender': 'assistant',
-          'text': _generateKnowledgeResponse(userMessage, isAmharic),
-          'time': isAmharic ? 'የተረጋገጠ መረጃ' : 'Verified advice',
-        });
-      });
-      _scrollToBottom();
+    // Call Hybrid API (Python backend -> fallback to offline SrhKnowledgeEngine)
+    final result = await ChatbotApiService.sendMessage(
+      message: userMessage,
+      isAmharic: isAmharic,
+    );
+
+    if (!mounted) return;
+    setState(() {
+      _isTyping = false;
+      _messages.add(_ChatMessageItem(
+        sender: 'assistant',
+        text: result.text,
+        time: result.source,
+        category: result.category,
+        isUrgent: result.isUrgent,
+        followUps: result.followUpQuestions,
+        source: result.source,
+      ));
     });
-  }
 
-  String _generateKnowledgeResponse(String query, bool isAmharic) {
-    final q = query.toLowerCase();
-
-    if (isAmharic) {
-      if (q.contains('hiv') || q.contains('ኤች.አይ.ቪ') || q.contains('ምልክት')) {
-        return 'ኤች.አይ.ቪ በሰውነት በሽታ የመከላከል ስርዓት ላይ ተጽእኖ የሚያሳድር ቫይረስ ነው። በመጀመሪያዎቹ ሳምንታት ምንም ምልክት ላያሳይ ይችላል። በኢትዮጵያ ውስጥ በሁሉም የመንግስት ጤና ጣቢያዎች ነፃ ፈጣን ምርመራ እና የART ህክምና በነፃ ይሰጣል። ድንገተኛ ንክኪ ካጋጠመ በ72 ሰዓት ውስጥ PEP መውሰድ ይቻላል።';
-      } else if (q.contains('spotting') || q.contains('መርፌ') || q.contains('depo') || q.contains('ደፈረሰ')) {
-        return 'የ3 ወር መርፌ (Depo-Provera) በሚወስዱበት የመጀመሪያዎቹ ወራት ውስጥ አልፎ አልፎ ደም መፍሰስ ወይም የወር አበባ መዛባት የተለመደ ነው። ይህ ሆርሞኑ ሰውነትን ሲላመድ የሚከሰት ሲሆን በአብዛኛው ከጥቂት ወራት በኋላ ይስተካከላል።';
-      } else if (q.contains('መከላከያ') || q.contains('postpill') || q.contains('ድንገተኛ') || q.contains('emergency')) {
-        return 'ድንገተኛ የወሊድ መከላከያ እንክብል (እንደ Postinor-2) ጥንቃቄ ከጎደለው ግንኙነት በኋላ በ72 ሰዓታት (3 ቀናት) ውስጥ ሲወሰድ ከፍተኛ ውጤታማ ነው። እንክብሉ እንቁላል እንዳይወጣ በማዘግየት እርግዝናን ይከላከላል። በማንኛውም ፋርማሲ ያለ ሀኪም ማዘዣ ይገኛል።';
-      } else if (q.contains('ኮንዶም') || q.contains('ነፃ')) {
-        return 'ኮንዶም ከአባለዘር በሽታዎች እና ካልተፈለገ እርግዝና ድርብ ጥበቃ ይሰጣል። በሁሉም የጤና ጣቢያዎች፣ በወጣቶች ማዕከላት፣ በማሪ ስቶፕስ እና በFGAE ክሊኒኮች በነፃ ወይም በዝቅተኛ ዋጋ ይገኛል።';
-      } else if (q.contains('ህመም') || q.contains('ቁርጠት') || q.contains('cramp')) {
-        return 'የወር አበባ ቁርጠት በማህፀን መኮማተር ምክንያት የሚከሰት ነው። ሞቅ ያለ ውሃ መጠጣት፣ ሆድ ላይ ሞቅ ያለ ጨርቅ ወይም የውሃ ከረጢት ማድረግ እና ቀላል እንቅስቃሴዎችን ማድረግ ህመሙን ይቀንሳል።';
-      } else {
-        return 'ስለ ጠየቁን እናመሰግናለን። ለግል ክሊኒካዊ ምክር በአቅራቢያዎ ወደሚገኝ ጤና ጣቢያ፣ ማሪ ስቶፕስ (Marie Stopes) ወይም FGAE ክሊኒክ ጎራ ብለው የጤና ባለሙያዎችን ማማከር ይችላሉ። ድንገተኛ ምክር ከፈለጉ በነፃ የስልክ መስመር 8335 ይደውሉ።';
-      }
-    } else {
-      if (q.contains('hiv') || q.contains('symptom')) {
-        return 'HIV attacks the body\'s immune system. Many people experience zero symptoms during early stages. In Ethiopia, rapid testing and modern ART treatment are 100% free and confidential at all government health facilities. If exposure occurred within 72 hours, visit a clinic for PEP.';
-      } else if (q.contains('depo') || q.contains('spotting') || q.contains('bleeding')) {
-        return 'Yes, irregular bleeding or light spotting is completely normal during the first few months of using Depo-Provera (the 3-month injectable). The hormone progestin thins the uterine lining. Over time, periods typically become much lighter or pause entirely.';
-      } else if (q.contains('contracept') || q.contains('emergency') || q.contains('postpill')) {
-        return 'Emergency contraceptive pills (such as Postinor-2) are most effective when taken as soon as possible, within 72 hours (3 days) after unprotected intercourse. They prevent pregnancy by delaying ovulation. They do not terminate an existing pregnancy and are available over the counter.';
-      } else if (q.contains('condom') || q.contains('free')) {
-        return 'Condoms provide essential dual protection against both STIs and unintended pregnancy. In Ethiopia, free condoms are distributed at public health centers, youth drop-in centers, university health posts, and through organizations like DKT (Sensation brand) at very affordable prices.';
-      } else if (q.contains('cramp') || q.contains('pain') || q.contains('period')) {
-        return 'Menstrual cramps are caused by natural uterine contractions. Applying a warm heating pad to your lower abdomen, staying hydrated, engaging in light stretching, and taking mild over-the-counter pain relievers can provide relief.';
-      } else {
-        return 'Thank you for your question. TenaWise provides peer-reviewed educational guidance. For confidential clinical care in Ethiopia, visit your nearest youth-friendly clinic, Marie Stopes center, or dial free youth hotline 8335.';
-      }
-    }
+    _scrollToBottom();
   }
 
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent + 80,
+          _scrollController.position.maxScrollExtent + 120,
           duration: const Duration(milliseconds: 320),
           curve: Curves.easeOutCubic,
         );
@@ -164,16 +179,25 @@ class _AssistantScreenState extends State<AssistantScreen> {
             title: Row(
               children: [
                 Container(
-                  width: 32,
-                  height: 32,
+                  width: 34,
+                  height: 34,
                   decoration: BoxDecoration(
                     color: AppColors.primaryContainer,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(
-                    Icons.auto_awesome,
-                    color: Colors.white,
-                    size: 18,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.asset(
+                      'assets/images/logo.png',
+                      width: 34,
+                      height: 34,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, _, _) => const Icon(
+                        Icons.auto_awesome,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -190,13 +214,26 @@ class _AssistantScreenState extends State<AssistantScreen> {
                         letterSpacing: -0.3,
                       ),
                     ),
-                    Text(
-                      isAmharic ? 'ሚስጥራዊ የትምህርት አጋር' : 'Confidential AI Companion',
-                      style: const TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.onSurfaceVariant,
-                      ),
+                    Row(
+                      children: [
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: const BoxDecoration(
+                            color: Colors.green,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          isAmharic ? 'ሚስጥራዊ የSRH አጋር' : 'Confidential SRH AI',
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -242,7 +279,7 @@ class _AssistantScreenState extends State<AssistantScreen> {
           body: SafeArea(
             child: Column(
               children: [
-                // Suggested Prompts Carousel with TactileCards
+                // Suggested Prompts Carousel
                 StaggeredEntrance(
                   index: 0,
                   child: Container(
@@ -305,12 +342,13 @@ class _AssistantScreenState extends State<AssistantScreen> {
                       }
 
                       final msg = _messages[index];
-                      final isUser = msg['sender'] == 'user';
+                      final isUser = msg.sender == 'user';
                       return _AnimatedChatBubble(
-                        key: ValueKey('msg_${index}_${msg['text'].hashCode}'),
-                        text: msg['text']!,
+                        key: ValueKey('msg_${index}_${msg.text.hashCode}'),
+                        item: msg,
                         isUser: isUser,
-                        timestamp: msg['time']!,
+                        isAmharic: isAmharic,
+                        onFollowUpSelected: (q) => _sendMessage(q, isAmharic),
                       );
                     },
                   ),
@@ -345,7 +383,9 @@ class _AssistantScreenState extends State<AssistantScreen> {
               controller: _textController,
               onSubmitted: (txt) => _sendMessage(txt, isAmharic),
               decoration: InputDecoration(
-                hintText: isAmharic ? 'በነፃነት ይጠይቁ...' : 'Ask confidentially...',
+                hintText: isAmharic
+                    ? 'ስለ ስነ-ተዋልዶ ጤና በነፃነት ይጠይቁ...'
+                    : 'Ask any SRH question confidentially...',
                 hintStyle: const TextStyle(fontSize: 13, color: AppColors.outline),
                 filled: true,
                 fillColor: AppColors.surfaceContainerLowest,
@@ -404,17 +444,20 @@ class _AssistantScreenState extends State<AssistantScreen> {
   }
 }
 
-/// Spring-animated chat bubble that glides up and scales smoothly
+/// Spring-animated chat bubble with category badge, urgent clinical banner,
+/// and interactive follow-up question pills
 class _AnimatedChatBubble extends StatefulWidget {
-  final String text;
+  final _ChatMessageItem item;
   final bool isUser;
-  final String timestamp;
+  final bool isAmharic;
+  final ValueChanged<String> onFollowUpSelected;
 
   const _AnimatedChatBubble({
     super.key,
-    required this.text,
+    required this.item,
     required this.isUser,
-    required this.timestamp,
+    required this.isAmharic,
+    required this.onFollowUpSelected,
   });
 
   @override
@@ -460,6 +503,13 @@ class _AnimatedChatBubbleState extends State<_AnimatedChatBubble>
     super.dispose();
   }
 
+  Future<void> _callHotline() async {
+    final uri = Uri.parse('tel:8335');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -480,96 +530,243 @@ class _AnimatedChatBubbleState extends State<_AnimatedChatBubble>
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 6.0),
-        child: Row(
-          mainAxisAlignment:
-              widget.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.end,
+        child: Column(
+          crossAxisAlignment:
+              widget.isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
           children: [
-            if (!widget.isUser) ...[
-              Container(
-                width: 28,
-                height: 28,
-                margin: const EdgeInsets.only(bottom: 2),
-                decoration: const BoxDecoration(
-                  color: AppColors.primaryContainer,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.auto_awesome,
-                  color: Colors.white,
-                  size: 15,
-                ),
-              ),
-              const SizedBox(width: 8),
-            ],
-            Flexible(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: widget.isUser
-                      ? AppColors.primary
-                      : AppColors.surfaceContainerLowest,
-                  borderRadius: BorderRadius.only(
-                    topLeft: const Radius.circular(18),
-                    topRight: const Radius.circular(18),
-                    bottomLeft: Radius.circular(widget.isUser ? 18 : 4),
-                    bottomRight: Radius.circular(widget.isUser ? 4 : 18),
-                  ),
-                  border: widget.isUser
-                      ? null
-                      : Border.all(
-                          color: AppColors.outlineVariant.withValues(alpha: 0.35),
+            Row(
+              mainAxisAlignment:
+                  widget.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                if (!widget.isUser) ...[
+                  Container(
+                    width: 28,
+                    height: 28,
+                    margin: const EdgeInsets.only(bottom: 2),
+                    decoration: const BoxDecoration(
+                      color: AppColors.primaryContainer,
+                      shape: BoxShape.circle,
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(14),
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        width: 28,
+                        height: 28,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, _, _) => const Icon(
+                          Icons.auto_awesome,
+                          color: Colors.white,
+                          size: 15,
                         ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.03),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: widget.isUser
-                      ? CrossAxisAlignment.end
-                      : CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.text,
-                      style: TextStyle(
-                        fontSize: 13,
-                        height: 1.45,
-                        color: widget.isUser ? Colors.white : AppColors.onSurface,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      widget.timestamp,
-                      style: TextStyle(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w500,
-                        color: widget.isUser
-                            ? Colors.white70
-                            : AppColors.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                Flexible(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: widget.isUser
+                          ? AppColors.primary
+                          : (widget.item.isUrgent
+                              ? const Color(0xFFFFF4F2)
+                              : AppColors.surfaceContainerLowest),
+                      borderRadius: BorderRadius.only(
+                        topLeft: const Radius.circular(18),
+                        topRight: const Radius.circular(18),
+                        bottomLeft: Radius.circular(widget.isUser ? 18 : 4),
+                        bottomRight: Radius.circular(widget.isUser ? 4 : 18),
                       ),
+                      border: widget.isUser
+                          ? null
+                          : Border.all(
+                              color: widget.item.isUrgent
+                                  ? const Color(0xFFFFB4AB)
+                                  : AppColors.outlineVariant.withValues(alpha: 0.35),
+                              width: widget.item.isUrgent ? 1.2 : 1.0,
+                            ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                  ],
+                    child: Column(
+                      crossAxisAlignment: widget.isUser
+                          ? CrossAxisAlignment.end
+                          : CrossAxisAlignment.start,
+                      children: [
+                        // Category Badge
+                        if (!widget.isUser && widget.item.category != null) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
+                            margin: const EdgeInsets.only(bottom: 6),
+                            decoration: BoxDecoration(
+                              color: widget.item.isUrgent
+                                  ? const Color(0xFFFFDAD6)
+                                  : AppColors.secondaryContainer.withValues(alpha: 0.5),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  widget.item.isUrgent
+                                      ? Icons.warning_amber_rounded
+                                      : Icons.verified_user_outlined,
+                                  size: 11,
+                                  color: widget.item.isUrgent
+                                      ? const Color(0xFFBA1A1A)
+                                      : AppColors.primary,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  widget.item.category!,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: widget.item.isUrgent
+                                        ? const Color(0xFFBA1A1A)
+                                        : AppColors.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+
+                        // Main Text
+                        Text(
+                          widget.item.text,
+                          style: TextStyle(
+                            fontSize: 13,
+                            height: 1.48,
+                            color: widget.isUser ? Colors.white : AppColors.onSurface,
+                          ),
+                        ),
+
+                        // Urgent Action Button
+                        if (!widget.isUser && widget.item.isUrgent) ...[
+                          const SizedBox(height: 10),
+                          TactileCard(
+                            pressedScale: 0.95,
+                            onTap: _callHotline,
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFBA1A1A),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.phone_in_talk,
+                                      color: Colors.white, size: 14),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    widget.isAmharic
+                                        ? 'በነፃ 8335 ይደውሉ'
+                                        : 'Call 8335 Free Helpline',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+
+                        const SizedBox(height: 6),
+                        // Timestamp and source
+                        Text(
+                          widget.item.time,
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w500,
+                            color: widget.isUser
+                                ? Colors.white70
+                                : AppColors.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+                if (widget.isUser) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    width: 28,
+                    height: 28,
+                    margin: const EdgeInsets.only(bottom: 2),
+                    decoration: const BoxDecoration(
+                      color: AppColors.secondaryContainer,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.person,
+                      color: AppColors.onSecondaryContainer,
+                      size: 16,
+                    ),
+                  ),
+                ],
+              ],
             ),
-            if (widget.isUser) ...[
-              const SizedBox(width: 8),
-              Container(
-                width: 28,
-                height: 28,
-                margin: const EdgeInsets.only(bottom: 2),
-                decoration: const BoxDecoration(
-                  color: AppColors.secondaryContainer,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.person,
-                  color: AppColors.onSecondaryContainer,
-                  size: 16,
+
+            // Suggested Follow-up chips under assistant answers
+            if (!widget.isUser && widget.item.followUps.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.only(left: 36, top: 6, bottom: 4),
+                child: Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: widget.item.followUps.map((q) {
+                    return TactileCard(
+                      pressedScale: 0.94,
+                      onTap: () => widget.onFollowUpSelected(q),
+                      borderRadius: BorderRadius.circular(14),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceContainerHigh,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: AppColors.outlineVariant.withValues(alpha: 0.4),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.subdirectory_arrow_right_rounded,
+                              size: 12,
+                              color: AppColors.primary,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              q,
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
                 ),
               ),
             ],
@@ -611,7 +808,6 @@ class _TypingIndicatorBubbleState extends State<_TypingIndicatorBubble>
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
-        // Staggered sine oscillation
         final progress = (_controller.value - (index * 0.18)) % 1.0;
         final bounce = -6.0 * (progress < 0.5 ? progress * 2 : (1 - progress) * 2);
 
@@ -646,10 +842,19 @@ class _TypingIndicatorBubbleState extends State<_TypingIndicatorBubble>
               color: AppColors.primaryContainer,
               shape: BoxShape.circle,
             ),
-            child: const Icon(
-              Icons.auto_awesome,
-              color: Colors.white,
-              size: 15,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: Image.asset(
+                'assets/images/logo.png',
+                width: 28,
+                height: 28,
+                fit: BoxFit.contain,
+                errorBuilder: (_, _, _) => const Icon(
+                  Icons.auto_awesome,
+                  color: Colors.white,
+                  size: 15,
+                ),
+              ),
             ),
           ),
           const SizedBox(width: 8),

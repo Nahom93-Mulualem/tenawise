@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/localization/app_language.dart';
 import '../core/theme/app_colors.dart';
+import '../core/widgets/animated_fav_launcher.dart';
 import '../core/widgets/fade_indexed_stack.dart';
 import 'home/home_screen.dart';
 import 'cycle/cycle_screen.dart';
@@ -47,6 +48,12 @@ class _MainShellScreenState extends State<MainShellScreen> {
               const AssistantScreen(),
             ],
           ),
+          floatingActionButton: _currentIndex != 3
+              ? AnimatedFavLauncher(
+                  onTap: () => _onTabSelected(3),
+                  isAmharic: isAmharic,
+                )
+              : null,
           bottomNavigationBar: Container(
             decoration: BoxDecoration(
               border: Border(

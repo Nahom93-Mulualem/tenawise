@@ -151,25 +151,30 @@ class HomeScreen extends StatelessWidget {
       elevation: 0,
       title: Row(
         children: [
-          // App Logo with rounded squircle
-          ClipRRect(
+          // Interactive App Logo with rounded squircle & spring press feedback
+          TactileCard(
+            pressedScale: 0.88,
+            onTap: () => onNavigateToTab?.call(3),
             borderRadius: BorderRadius.circular(10),
-            child: Image.asset(
-              'assets/images/logo.png',
-              height: 36,
-              width: 36,
-              fit: BoxFit.contain,
-              errorBuilder: (_, _, _) => Container(
-                width: 36,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Image.asset(
+                'assets/images/logo.png',
                 height: 36,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryContainer,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.favorite,
-                  color: Colors.white,
-                  size: 20,
+                width: 36,
+                fit: BoxFit.contain,
+                errorBuilder: (_, _, _) => Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryContainer,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.favorite,
+                    color: Colors.white,
+                    size: 20,
+                  ),
                 ),
               ),
             ),
