@@ -33,7 +33,33 @@ class ChatbotApiService {
   }
 
   static bool _backendAvailable = false;
+  static bool _geminiConfigured = false;
   static DateTime? _lastChecked;
+
+  static bool get isBackendAvailable => _backendAvailable;
+  static bool get isGeminiConfigured => _geminiConfigured;
+
+  /// Global notifier for reactive UI updates: 'gemini', 'local_server', 'offline'
+  static final ValueNotifier<String> statusNotifier = ValueNotifier<String>('offline');
+
+  /// Probes the backend server to see if it is running and if Gemini API key is configured.
+  static Future<void> checkBackendStatus() async {
+    try {
+      final uri = Uri.parse('$baseUrl/');
+      final res = await http.get(uri).timeout(const Duration(milliseconds: 1200));
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body) as Map<String, dynamic>;
+        _backendAvailable = true;
+        _geminiConfigured = data['gemini_configured'] == true;
+        statusNotifier.value = _geminiConfigured ? 'gemini' : 'local_server';
+        return;
+      }
+    } catch (_) {
+      _backendAvailable = false;
+      _geminiConfigured = false;
+      statusNotifier.value = 'offline';
+    }
+  }
 
   /// Sends a message to the Python AI Chatbot backend.
   /// If the backend is unreachable (offline or not running), it automatically

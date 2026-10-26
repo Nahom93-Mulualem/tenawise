@@ -22,6 +22,14 @@ class SrhKnowledgeEngine {
   static SrhResponse getResponse(String rawQuery, bool isAmharic) {
     final query = rawQuery.trim().toLowerCase();
 
+    // 0. CRISIS & ASSAULT INTERVENTION (Immediate trauma-informed compassion, physical & psychological steps)
+    if (_matchesAny(query, [
+      'raped', 'rape', 'assault', 'assaulted', 'sexual assault', 'forced me', 'against my will', 'violated',
+      'ተደፈር', 'ተገደድ', 'አስገደደኝ', 'የፆታ ጥቃት'
+    ])) {
+      return _getAssaultCrisisResponse(isAmharic);
+    }
+
     // Distinguish between educational inquiries vs active clinical emergencies
     final isEducational = _matchesAny(query, [
       'what is', 'what are', 'define', 'definition', 'explain', 'meaning of', 'how does it work',
@@ -34,11 +42,11 @@ class SrhKnowledgeEngine {
       return _getPepEducationalResponse(isAmharic);
     }
 
-    // 1. ACTIVE CLINICAL EMERGENCY TRIAGE (Personal incident within 72h, assault, broken condom, hemorrhage)
+    // 1. ACTIVE CLINICAL EMERGENCY TRIAGE (Personal incident within 72h, broken condom, hemorrhage)
     final hasActiveEmergency = _matchesAny(query, [
-      'raped', 'assault', 'forced me', 'condom broke', 'broke during', 'yesterday', 'hours ago', 'last night',
+      'condom broke', 'broke during', 'yesterday', 'hours ago', 'last night',
       'just happened', 'bleeding heavily', 'emergency', 'help me',
-      'ተደፈር', 'ተገደድ', 'ኮንዶም ተቀደደ', 'አስገደደኝ', 'ትናንት', 'ሰዓት በፊት', 'ደሜ አልቆመም', 'አስቸኳይ'
+      'ኮንዶም ተቀደደ', 'ትናንት', 'ሰዓት በፊት', 'ደሜ አልቆመም', 'አስቸኳይ'
     ]) || (!isEducational && _matchesAny(query, ['pep', '72 hour', '72 ሰዓት']));
 
     if (hasActiveEmergency) {
@@ -58,7 +66,9 @@ class SrhKnowledgeEngine {
     if (_matchesAny(query, [
       'how does pregnancy happen', 'how does conception work', 'fertilization', 'how do people get pregnant',
       'biology of reproduction', 'human reproduction', 'implantation', 'sperm meets egg',
-      'እርግዝና እንዴት ይፈጠራል', 'ፅንስ እንዴት', 'መራባት', 'የሰው ዘር መራባት', 'እንቁላል ማዳቀል'
+      'pregnant', 'pregnancy', 'wife would be pregnant', 'know if pregnant', 'am i pregnant', 'is she pregnant',
+      'signs of pregnancy', 'early pregnancy', 'fertile window',
+      'እርግዝና እንዴት ይፈጠራል', 'ፅንስ እንዴት', 'መራባት', 'የሰው ዘር መራባት', 'እንቁላል ማዳቀል', 'እርግዝና', 'እርጉዝ'
     ])) {
       return _getReproductionBiologyResponse(isAmharic);
     }
@@ -625,6 +635,62 @@ class SrhKnowledgeEngine {
           'What are the common side effects of PEP?',
           'How does PrEP differ from PEP?',
           'Where is the nearest youth-friendly clinic in Ethiopia?',
+        ],
+      );
+    }
+  }
+
+  static SrhResponse _getAssaultCrisisResponse(bool isAmharic) {
+    if (isAmharic) {
+      return const SrhResponse(
+        isUrgent: true,
+        category: 'አስቸኳይ የጥቃት እርዳታ',
+        text: '⚠️ **አስቸኳይ የጤና፣ የአካል እና የስነ-ልቦና ድጋፍ (Crisis Intervention):**\n\n'
+            'በመጀመሪያ ይህ የእርስዎ ጥፋት እንዳልሆነ ይወቁ። እርስዎ ደህና ነዎት፣ ብቻዎን አይደሉም።\n\n'
+            '### 1. አካላዊ እና የህክምና እርምጃዎች (በ72 ሰዓታት ውስጥ):\n'
+            '• **ደህንነት:** ወደ አስተማማኝ እና ደህንነቱ የተጠበቀ ቦታ ይሂዱ፤ ከሚያምኑት ሰው ጋር ይሁኑ።\n'
+            '• **የኤች.አይ.ቪ መከላከያ (PEP):** ጥቃቱ በተፈጠረ በ**72 ሰዓታት (3 ቀናት)** ውስጥ ወደ ጤና ተቋም በመሄድ የPEP መድኃኒት በነፃ ይጀምሩ።\n'
+            '• **ድንገተኛ የወሊድ መከላከያ:** ያልተፈለገ እርግዝናን ለመከላከል የድንገተኛ የወሊድ መከላከያ እንክብል (Postinor-2 / Postpill) በ72 ሰዓታት ውስጥ ይውሰዱ።\n'
+            '• **ማስረጃ መጠበቅ እና ምርመራ:** ጥቃቱን ሪፖርት የማድረግ ሀሳብ ካለዎት ወደ ጤና ተቋም ከመሄድዎ በፊት ገላዎን አለመታጠብ፣ ልብስ አለመቀየር እና አለመፀዳዳት ማስረጃዎችን ለመጠበቅ ይረዳል። ልብስ ከተቀየረ በወረቀት ፌስታል ውስጥ ያስቀምጡት።\n\n'
+            '### 2. ስነ-ልቦናዊ ድጋፍ እና ማረጋጊያ:\n'
+            '• **ስሜታዊ ማረጋጊያ (Grounding):** አተነፋፈስዎን ያረጋጉ (ለ4 ሰከንድ አየር ወደ ውስጥ መሳብ፣ ለ4 ሰከንድ ማቆየት፣ ለ6 ሰከንድ ማስወጣት)። ይህ ድንጋጤ ጊዜያዊ እንደሆነ ያስታውሱ።\n'
+            '• **የብቻ ሸክም አይሁን:** ለሚያምኑት የቤተሰብ አባል፣ ጓደኛ ወይም የሳይኮሎጂ ባለሙያ ያካፍሉ።\n\n'
+            '🏥 **ነፃ እና ሚስጥራዊ የስልክ መስመሮች እና የጤና አጋሮች:**\n'
+            '• 📞 **8335** - የወጣቶች የስነ-ተዋልዶ ጤና ነፃ መስመር (ምክር እና ክሊኒካዊ መመሪያ)\n'
+            '• 📞 **6788** - የፆታ ጥቃት (GBV) ተጎጂዎች ነፃ የአደጋ ጊዜ ስልክ መስመር\n'
+            '• **የመንግስት ወረዳ ጤና ጣቢያዎች ወይም ሆስፒታሎች:** ነፃ የPEP ህክምና እና ክሊኒካዊ ድጋፍ\n'
+            '• **ማሪ ስቶፕስ እና FGAE:** ሚስጥራዊ የስነ-ተዋልዶ ጤና ማዕከላት',
+        followUpQuestions: [
+          'በነፃ የስልክ መስመር 8335 መደወል',
+          'የPEP መድኃኒት እንዴት ይሰራል?',
+          'በነፃ የስልክ መስመር 6788 መደወል',
+        ],
+      );
+    } else {
+      return const SrhResponse(
+        isUrgent: true,
+        category: 'Crisis Intervention',
+        text: '⚠️ **URGENT CRISIS & MEDICAL TRIAGE:**\n\n'
+            'First and most importantly: **You are safe right now, and what happened is NOT your fault.** You do not have to go through this alone.\n\n'
+            '### 1. Physical & Medical Steps (Within the Critical 72-Hour Window):\n'
+            '• **Immediate Safety:** Get to a secure, safe environment with someone you trust.\n'
+            '• **HIV Post-Exposure Prophylaxis (PEP):** You must begin PEP within **72 hours (3 days)** of the incident. It stops HIV from taking hold in your body and is **100% free** at all public health centers and hospitals in Ethiopia.\n'
+            '• **Emergency Contraception:** Take Postinor-2 / Postpill or Ella within 72–120 hours to prevent unintended pregnancy.\n'
+            '• **Forensic Evidence & Medical Exam:** If you may report or seek justice, try to avoid showering, bathing, douching, brushing teeth, or changing clothes before a clinical exam. If you must change clothes, place each garment in clean paper bags (not plastic).\n'
+            '• **STI Screening & Wound Care:** Clinicians will provide syndromic antibiotics to prevent gonorrhea, chlamydia, and syphilis, and care for any physical injuries.\n\n'
+            '### 2. Psychological & Emotional Steps:\n'
+            '• **Emotional Grounding:** Acute shock and trembling are natural bodily reactions. Use slow diaphragmatic breathing (inhale for 4 seconds, hold 4, exhale 6) or the 5-4-3-2-1 sensory grounding technique.\n'
+            '• **Reach Out:** Confide in a trusted friend, family member, or healthcare professional. Do not isolate yourself.\n'
+            '• **Trauma Counseling:** Access free, trauma-informed psychological first aid right away.\n\n'
+            '🏥 **Immediate Ethiopian Support Lines & Partners:**\n'
+            '• 📞 **8335** - National Youth Reproductive Health Helpline (Toll-Free from any phone in Ethiopia)\n'
+            '• 📞 **6788** - National GBV Survivor Support Hotline (Toll-Free, 24/7 confidential crisis line)\n'
+            '• **Nearest Government Woreda Health Center or Hospital:** 100% free PEP & emergency trauma care\n'
+            '• **Marie Stopes Ethiopia & FGAE Youth Centers:** Confidential, non-judgmental youth reproductive care',
+        followUpQuestions: [
+          'Call Toll-Free Helpline 8335',
+          'Call GBV Helpline 6788',
+          'How does PEP medication work?',
         ],
       );
     }

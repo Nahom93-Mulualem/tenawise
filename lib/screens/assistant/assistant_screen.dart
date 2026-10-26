@@ -71,6 +71,7 @@ class _AssistantScreenState extends State<AssistantScreen> {
   void initState() {
     super.initState();
     _resetToGreeting(AppLanguage.isAmharic);
+    ChatbotApiService.checkBackendStatus();
   }
 
   @override
@@ -214,26 +215,40 @@ class _AssistantScreenState extends State<AssistantScreen> {
                         letterSpacing: -0.3,
                       ),
                     ),
-                    Row(
-                      children: [
-                        Container(
-                          width: 6,
-                          height: 6,
-                          decoration: const BoxDecoration(
-                            color: Colors.green,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          isAmharic ? 'ሚስጥራዊ የSRH አጋር' : 'Confidential SRH AI',
-                          style: const TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
+                    ValueListenableBuilder<String>(
+                      valueListenable: ChatbotApiService.statusNotifier,
+                      builder: (context, status, _) {
+                        Color dotColor = Colors.grey;
+                        String statusText = isAmharic ? 'ከመስመር ውጭ ሞተር' : 'Offline Engine';
+                        if (status == 'gemini') {
+                          dotColor = Colors.green;
+                          statusText = isAmharic ? 'ጀሚኒ AI ተገናኝቷል' : 'Gemini 2.5 Flash Online';
+                        } else if (status == 'local_server') {
+                          dotColor = Colors.amber.shade800;
+                          statusText = isAmharic ? 'ሎካል ሰርቨር (ቁልፍ ይጎድላል)' : 'Local Server (No Key)';
+                        }
+                        return Row(
+                          children: [
+                            Container(
+                              width: 6.5,
+                              height: 6.5,
+                              decoration: BoxDecoration(
+                                color: dotColor,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              statusText,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: dotColor,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -641,14 +656,10 @@ class _AnimatedChatBubbleState extends State<_AnimatedChatBubble>
                           ),
                         ],
 
-                        // Main Text
-                        Text(
-                          widget.item.text,
-                          style: TextStyle(
-                            fontSize: 13,
-                            height: 1.48,
-                            color: widget.isUser ? Colors.white : AppColors.onSurface,
-                          ),
+                        // Main Formatted Text (Eliminates raw ** and renders bold & bullets cleanly)
+                        _FormattedMarkdownText(
+                          text: widget.item.text,
+                          isUser: widget.isUser,
                         ),
 
                         // Urgent Action Button
@@ -884,5 +895,104 @@ class _TypingIndicatorBubbleState extends State<_TypingIndicatorBubble>
         ],
       ),
     );
+  }
+}
+
+/// Renders markdown-like text with clean typography, eliminating raw ** asterisks
+/// and formatting bold text, bullet points, and numbered lists cleanly.
+class _FormattedMarkdownText extends StatelessWidget {
+  final String text;
+  final bool isUser;
+
+  const _FormattedMarkdownText({
+    required this.text,
+    required this.isUser,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (isUser) {
+      return Text(
+        text,
+        style: const TextStyle(
+          fontSize: 13,
+          height: 1.45,
+          color: Colors.white,
+        ),
+      );
+    }
+
+    final lines = text.split('\n');
+    final List<Widget> widgets = [];
+
+    for (int i = 0; i < lines.length; i++) {
+      final line = lines[i];
+      if (line.trim().isEmpty) {
+        widgets.add(const SizedBox(height: 5));
+        continue;
+      }
+
+      final isBullet = line.trimLeft().startsWith('•') ||
+          line.trimLeft().startsWith('- ') ||
+          line.trimLeft().startsWith('* ');
+
+      widgets.add(
+        Padding(
+          padding: EdgeInsets.only(
+            top: 2,
+            bottom: 2,
+            left: isBullet ? 4.0 : 0.0,
+          ),
+          child: RichText(
+            text: TextSpan(
+              style: const TextStyle(
+                fontSize: 13,
+                height: 1.48,
+                color: AppColors.onSurface,
+              ),
+              children: _parseSpans(line),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: widgets,
+    );
+  }
+
+  List<InlineSpan> _parseSpans(String line) {
+    final List<InlineSpan> spans = [];
+    final boldPattern = RegExp(r'\*\*(.*?)\*\*');
+    int lastIndex = 0;
+
+    for (final match in boldPattern.allMatches(line)) {
+      if (match.start > lastIndex) {
+        spans.add(TextSpan(
+          text: line.substring(lastIndex, match.start),
+          style: const TextStyle(color: AppColors.onSurface),
+        ));
+      }
+      final boldText = match.group(1) ?? '';
+      spans.add(TextSpan(
+        text: boldText,
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          color: AppColors.primary,
+        ),
+      ));
+      lastIndex = match.end;
+    }
+
+    if (lastIndex < line.length) {
+      spans.add(TextSpan(
+        text: line.substring(lastIndex),
+        style: const TextStyle(color: AppColors.onSurface),
+      ));
+    }
+
+    return spans;
   }
 }
