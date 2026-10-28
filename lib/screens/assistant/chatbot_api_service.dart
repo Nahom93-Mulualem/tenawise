@@ -67,6 +67,7 @@ class ChatbotApiService {
   static Future<ChatbotResult> sendMessage({
     required String message,
     required bool isAmharic,
+    List<Map<String, String>> history = const [],  // ← conversation history added
   }) async {
     // If backend was recently detected as offline (within 30 seconds),
     // skip network delay and return instant local response (0 ms delay)
@@ -93,9 +94,10 @@ class ChatbotApiService {
             body: jsonEncode({
               'message': message,
               'language': isAmharic ? 'am' : 'en',
+              'history': history,  // ← now sent to backend so Ollama has memory
             }),
           )
-          .timeout(const Duration(milliseconds: 2000));
+          .timeout(const Duration(seconds: 45));  // ← increased from 2s; Ollama needs up to 30-45s
 
       if (response.statusCode == 200) {
         _backendAvailable = true;

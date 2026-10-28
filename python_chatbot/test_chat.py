@@ -23,7 +23,7 @@ def chat():
             response = requests.post(
                 URL,
                 json={"message": msg},
-                timeout=15
+                timeout=45
             )
             data = response.json()
             print(f"\nTenaWise [{data.get('category', 'AI')}]:")

@@ -125,9 +125,16 @@ class _AssistantScreenState extends State<AssistantScreen> {
     _scrollToBottom();
 
     // Call Hybrid API (Python backend -> fallback to offline SrhKnowledgeEngine)
+    // Build history list from current messages to give the AI conversation context
+    final historyForApi = _messages
+        .where((m) => m.sender == 'user' || m.sender == 'assistant')
+        .map((m) => {'role': m.sender == 'user' ? 'user' : 'assistant', 'content': m.text})
+        .toList();
+
     final result = await ChatbotApiService.sendMessage(
       message: userMessage,
       isAmharic: isAmharic,
+      history: historyForApi,
     );
 
     if (!mounted) return;

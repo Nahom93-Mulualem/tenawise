@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import re
+import requests  # Required for Ollama HTTP calls (_check_ollama_available, _query_ollama)
 from typing import List, Optional
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,6 +11,14 @@ from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
+
+# Initialize verified clinical RAG retriever
+try:
+    from rag_engine.retriever import ClinicalRetriever
+    clinical_retriever = ClinicalRetriever()
+except Exception as e:
+    print(f"[*] Warning: Could not initialize ClinicalRetriever: {e}")
+    clinical_retriever = None
 
 app = FastAPI(
     title="TenaWise SRH AI Chatbot API",
@@ -297,13 +306,84 @@ def _generate_fallback_response(message: str, is_amharic: bool) -> ChatResponse:
             source="TenaWise Offline Clinical Engine"
         )
 
+# LLM Provider Configuration: 'auto' (checks Ollama first, then Gemini), 'ollama', or 'gemini'
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "auto").lower()
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:3b")
+
+def _check_ollama_available() -> bool:
+    """Checks if local Ollama server is running and accessible."""
+    try:
+        r = requests.get(f"{OLLAMA_URL}/api/tags", timeout=3.0)
+        return r.status_code == 200
+    except Exception:
+        return False
+
+def _build_history_text(history: List[ChatMessage]) -> str:
+    """Formats the last 6 messages (3 turns) of conversation history into a readable prompt block.
+    This gives Ollama memory of the recent conversation so it can reply in context.
+    """
+    if not history:
+        return ""
+    recent = history[-6:]  # keep last 3 user+assistant pairs to stay within token limits
+    lines = []
+    for msg in recent:
+        role_label = "User" if msg.role == "user" else "TenaWise Assistant"
+        lines.append(f"{role_label}: {msg.content}")
+    return "### Conversation History (Most Recent First):\n" + "\n".join(lines) + "\n"
+
+
+def _query_ollama(prompt: str, is_amharic: bool) -> Optional[ChatResponse]:
+    """Queries local Ollama instance (e.g. qwen2.5:3b) with MoH RAG context."""
+    try:
+        payload = {
+            "model": OLLAMA_MODEL,
+            "prompt": prompt,
+            "stream": False,
+            "options": {
+                "temperature": 0.3,
+                "num_predict": 450,
+            }
+        }
+        res = requests.post(f"{OLLAMA_URL}/api/generate", json=payload, timeout=45)
+        if res.status_code == 200:
+            text = res.json().get("response", "").strip()
+            if text:
+                is_urgent = _contextual_urgency_assessment(prompt)
+                referral = _build_referral_text(is_amharic) if is_urgent else None
+                reply = text + (f"\n\n{referral}" if is_urgent and referral and "8335" not in text else "")
+                
+                return ChatResponse(
+                    reply=reply,
+                    category="Emergency Clinical Triage" if is_urgent else "TenaWise Local AI",
+                    is_urgent=is_urgent,
+                    referral_partner="Woreda Health Center / Marie Stopes / FGAE / 8335" if is_urgent else None,
+                    follow_up_questions=[
+                        "ስለ ድንገተኛ መከላከያ ተጨማሪ ማወቅ እፈልጋለሁ" if is_amharic else "How does emergency contraception work?",
+                        "በአቅራቢያዬ ያለ ነፃ ጤና ጣቢያ የት ይገኛል?" if is_amharic else "Where can I access free youth-friendly health services?",
+                        "የአደጋ ጊዜ ስልክ 8335" if is_amharic else "Toll-free youth helpline 8335"
+                    ],
+                    source=f"Local Ollama ({OLLAMA_MODEL}) via TenaWise"
+                )
+    except Exception as e:
+        print(f"[*] Ollama query failed: {e}", file=sys.stderr)
+    return None
+
 @app.get("/")
 def health_check():
     has_gemini = bool(os.getenv("GEMINI_API_KEY"))
+    ollama_ok = _check_ollama_available()
+    chunks_count = len(clinical_retriever.local_index) if (clinical_retriever and clinical_retriever.local_index) else 0
     return {
         "status": "healthy",
         "app": "TenaWise SRH AI Chatbot",
+        "llm_provider": LLM_PROVIDER,
+        "local_ollama": {
+            "available": ollama_ok,
+            "model": OLLAMA_MODEL if ollama_ok else None
+        },
         "gemini_configured": has_gemini,
+        "knowledge_guidelines_indexed": chunks_count,
         "language_support": ["Amharic", "English"],
         "hotlines": {
             "youth_srh_hotline": "8335 (Toll-Free in Ethiopia)",
@@ -316,12 +396,12 @@ def health_check():
         ]
     }
 
-# Active model candidates in priority order
+# Active model candidates in priority order (gemini-3.1-flash-lite is active and fast)
 GEMINI_MODELS = [
-    "gemini-3.5-flash",
-    "gemini-3.8-flash",
-    "gemini-flash-latest",
     "gemini-3.1-flash-lite",
+    "gemini-3-flash-preview",
+    "gemini-flash-latest",
+    "gemini-3.8-flash",
 ]
 
 @app.post("/api/chat", response_model=ChatResponse)
@@ -329,7 +409,35 @@ async def chat_endpoint(request: ChatRequest):
     api_key = os.getenv("GEMINI_API_KEY")
     is_amharic = request.language == "am" or any(ord(c) >= 0x1200 and ord(c) <= 0x137F for c in request.message)
 
-    # If no API key configured, use intelligent clinical fallback
+    # 1. Retrieve verified passages from Ethiopian MoH / WHO documents
+    retrieved_passages = []
+    rag_context = ""
+    if clinical_retriever:
+        retrieved_passages = clinical_retriever.search(request.message, top_k=3)
+        if retrieved_passages:
+            rag_context = clinical_retriever.format_context_for_prompt(retrieved_passages)
+
+    # 2. Check Local Ollama (Privacy-first, 100% offline) if enabled
+    if LLM_PROVIDER in ["auto", "ollama"] and _check_ollama_available():
+        # Build conversation history block so Ollama remembers previous turns
+        history_text = _build_history_text(request.history or [])
+        ollama_prompt = (
+            f"{SRH_SYSTEM_PROMPT}\n\n"
+            f"{rag_context}\n\n"
+            f"{history_text}\n"
+            f"User Question: {request.message}\n"
+            f"Language Preferred: {'Amharic' if is_amharic else 'English'}\n\n"
+            f"Provide a clear, culturally sensitive, non-judgmental, and medically accurate response "
+            f"based on the Ethiopian MoH and WHO guidelines above."
+        )
+        ollama_res = _query_ollama(ollama_prompt, is_amharic)
+        if ollama_res:
+            return ollama_res
+        if LLM_PROVIDER == "ollama":
+            # If user explicitly set provider to ollama, don't fall back to cloud
+            return _generate_fallback_response(request.message, is_amharic)
+
+    # 3. Fallback to Gemini if Ollama is not active and API key exists
     if not api_key:
         return _generate_fallback_response(request.message, is_amharic)
 
@@ -366,7 +474,7 @@ Output format: Return ONLY a valid JSON object with these keys:
 }
 """
 
-        prompt_content = f"{SRH_SYSTEM_PROMPT}\n\n{triage_instructions}\n\nUser Question: {request.message}\nLanguage Preferred: {'Amharic' if is_amharic else 'English'}"
+        prompt_content = f"{SRH_SYSTEM_PROMPT}\n\n{rag_context}\n\n{triage_instructions}\n\nUser Question: {request.message}\nLanguage Preferred: {'Amharic' if is_amharic else 'English'}"
 
         response = None
         chosen_model = None
@@ -434,4 +542,4 @@ Output format: Return ONLY a valid JSON object with these keys:
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("app:app", host="127.0.0.1", port=8000, reload=True)

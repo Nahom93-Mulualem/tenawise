@@ -7,10 +7,18 @@ import os
 import glob
 from pathlib import Path
 
+import json
+import re
+
 # Base paths
 BASE_DIR = Path(__file__).resolve().parent.parent
 DOCS_DIR = BASE_DIR / "knowledge_docs"
 CHROMA_DIR = BASE_DIR / "chroma_db"
+INDEX_FILE = BASE_DIR / "knowledge_index.json"
+
+def tokenize(text: str):
+    """Tokenize English words and Ethiopic/Amharic words into a normalized set."""
+    return [t.lower() for t in re.findall(r'[\w\u1200-\u137F]+', text) if len(t) > 1]
 
 def extract_text_from_pdf(pdf_path: Path):
     """Extracts text from a PDF file page by page."""
@@ -19,9 +27,12 @@ def extract_text_from_pdf(pdf_path: Path):
         reader = PdfReader(str(pdf_path))
         pages_content = []
         for idx, page in enumerate(reader.pages):
-            text = page.extract_text()
-            if text and text.strip():
-                pages_content.append({"page": idx + 1, "text": text.strip()})
+            try:
+                text = page.extract_text()
+                if text and text.strip():
+                    pages_content.append({"page": idx + 1, "text": text.strip()})
+            except Exception:
+                continue
         return pages_content
     except ImportError:
         print("[-] pypdf not installed. Please run: pip install pypdf")
@@ -45,28 +56,7 @@ def chunk_text(text: str, chunk_size: int = 600, overlap: int = 100):
     return chunks
 
 def ingest_documents():
-    """Scans knowledge_docs/ and indexes all documents into ChromaDB."""
-    try:
-        import chromadb
-        from chromadb.utils import embedding_functions
-    except ImportError:
-        print("[-] chromadb not installed. Please run: pip install chromadb sentence-transformers")
-        return
-
-    print(f"[*] Initializing local ChromaDB at: {CHROMA_DIR}")
-    client = chromadb.PersistentClient(path=str(CHROMA_DIR))
-
-    # Using local sentence-transformers embedding
-    embedding_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
-        model_name="all-MiniLM-L6-v2"
-    )
-
-    collection = client.get_or_create_collection(
-        name="tenawise_srh_guidelines",
-        embedding_function=embedding_fn,
-        metadata={"description": "Ethiopian Ministry of Health and WHO SRH Guidelines"}
-    )
-
+    """Scans knowledge_docs/ and indexes all documents into ChromaDB or knowledge_index.json."""
     pdf_files = list(DOCS_DIR.glob("*.pdf"))
     txt_files = list(DOCS_DIR.glob("*.txt"))
     all_files = pdf_files + txt_files
@@ -76,11 +66,9 @@ def ingest_documents():
         print("    Please drop your guideline files into python_chatbot/knowledge_docs/")
         return
 
-    print(f"[*] Found {len(all_files)} document(s) to process.")
+    print(f"[*] Found {len(all_files)} document(s) in knowledge_docs/ to process.")
 
-    documents = []
-    metadatas = []
-    ids = []
+    chunks_data = []
     chunk_counter = 0
 
     for file_path in all_files:
@@ -91,30 +79,58 @@ def ingest_documents():
                 page_chunks = chunk_text(p["text"])
                 for i, c in enumerate(page_chunks):
                     chunk_id = f"{file_path.stem}_p{p['page']}_c{i}"
-                    documents.append(c)
-                    metadatas.append({
+                    chunks_data.append({
+                        "id": chunk_id,
                         "source": file_path.name,
                         "page": p["page"],
-                        "type": "Ethiopian MoH / WHO Guideline"
+                        "type": "Ethiopian MoH / WHO Guideline",
+                        "content": c,
+                        "tokens": tokenize(c)
                     })
-                    ids.append(chunk_id)
                     chunk_counter += 1
         elif file_path.suffix.lower() == ".txt":
-            content = file_path.read_text(encoding="utf-8")
-            txt_chunks = chunk_text(content)
-            for i, c in enumerate(txt_chunks):
-                chunk_id = f"{file_path.stem}_c{i}"
-                documents.append(c)
-                metadatas.append({
-                    "source": file_path.name,
-                    "page": 1,
-                    "type": "Manual / Protocol"
-                })
-                ids.append(chunk_id)
-                chunk_counter += 1
+            try:
+                content = file_path.read_text(encoding="utf-8")
+                txt_chunks = chunk_text(content)
+                for i, c in enumerate(txt_chunks):
+                    chunk_id = f"{file_path.stem}_c{i}"
+                    chunks_data.append({
+                        "id": chunk_id,
+                        "source": file_path.name,
+                        "page": 1,
+                        "type": "Manual / Protocol",
+                        "content": c,
+                        "tokens": tokenize(c)
+                    })
+                    chunk_counter += 1
+            except Exception as e:
+                print(f"[-] Error reading {file_path.name}: {e}")
 
-    if documents:
-        # Batch insert into ChromaDB
+    if not chunks_data:
+        print("[!] No text content could be extracted from documents.")
+        return
+
+    # Try ChromaDB if available
+    chroma_success = False
+    try:
+        import chromadb
+        from chromadb.utils import embedding_functions
+
+        print(f"[*] Initializing local ChromaDB at: {CHROMA_DIR}")
+        client = chromadb.PersistentClient(path=str(CHROMA_DIR))
+        embedding_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
+            model_name="all-MiniLM-L6-v2"
+        )
+        collection = client.get_or_create_collection(
+            name="tenawise_srh_guidelines",
+            embedding_function=embedding_fn,
+            metadata={"description": "Ethiopian Ministry of Health and WHO SRH Guidelines"}
+        )
+
+        documents = [c["content"] for c in chunks_data]
+        metadatas = [{"source": c["source"], "page": c["page"], "type": c["type"]} for c in chunks_data]
+        ids = [c["id"] for c in chunks_data]
+
         batch_size = 50
         for i in range(0, len(documents), batch_size):
             collection.upsert(
@@ -123,8 +139,29 @@ def ingest_documents():
                 ids=ids[i:i + batch_size]
             )
         print(f"[+] Successfully indexed {chunk_counter} guideline chunks into ChromaDB!")
-    else:
-        print("[!] No text content could be extracted from documents.")
+        chroma_success = True
+    except (ImportError, Exception) as e:
+        # ChromaDB not installed or failed due to C++ dependency on Windows
+        pass
+
+    # Save to lightweight JSON index (zero-dependency, works everywhere)
+    # We save chunks without huge duplicate tokens to keep file compact
+    clean_index = []
+    for c in chunks_data:
+        clean_index.append({
+            "id": c["id"],
+            "source": c["source"],
+            "page": c["page"],
+            "content": c["content"],
+            "tokens": list(set(c["tokens"]))[:60] # Top unique tokens
+        })
+
+    with open(INDEX_FILE, "w", encoding="utf-8") as f:
+        json.dump(clean_index, f, ensure_ascii=False)
+
+    print(f"[+] Successfully built TenaWise Knowledge Index: {len(clean_index)} guideline chunks indexed in {INDEX_FILE.name}!")
+    if not chroma_success:
+        print("    (Using TenaWise Native Pure-Python Search Engine — 100% compatible, 0 C++ build tools required)")
 
 if __name__ == "__main__":
     ingest_documents()
