@@ -227,12 +227,12 @@ class _AssistantScreenState extends State<AssistantScreen> {
                       builder: (context, status, _) {
                         Color dotColor = Colors.grey;
                         String statusText = isAmharic ? 'ከመስመር ውጭ ሞተር' : 'Offline Engine';
-                        if (status == 'gemini') {
+                        if (status == 'ollama') {
                           dotColor = Colors.green;
-                          statusText = isAmharic ? 'ጀሚኒ AI ተገናኝቷል' : 'Gemini 2.5 Flash Online';
+                          statusText = isAmharic ? 'Qwen AI (ሎካል) ንቁ' : 'Qwen AI Local Online';
                         } else if (status == 'local_server') {
                           dotColor = Colors.amber.shade800;
-                          statusText = isAmharic ? 'ሎካል ሰርቨር (ቁልፍ ይጎድላል)' : 'Local Server (No Key)';
+                          statusText = isAmharic ? 'ሰርቨር ንቁ (Ollama አልተገናኘም)' : 'Server Online (Ollama Offline)';
                         }
                         return Row(
                           children: [
@@ -527,8 +527,14 @@ class _AnimatedChatBubbleState extends State<_AnimatedChatBubble>
 
   Future<void> _callHotline() async {
     final uri = Uri.parse('tel:8335');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        await launchUrl(uri);
+      }
+    } catch (e) {
+      debugPrint('Error launching hotline dialer: $e');
     }
   }
 
@@ -623,39 +629,31 @@ class _AnimatedChatBubbleState extends State<_AnimatedChatBubble>
                           ? CrossAxisAlignment.end
                           : CrossAxisAlignment.start,
                       children: [
-                        // Category Badge
-                        if (!widget.isUser && widget.item.category != null) ...[
+                        // Urgent Alert Banner (shown ONLY for genuine emergency triage)
+                        if (!widget.isUser && widget.item.isUrgent) ...[
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 3),
-                            margin: const EdgeInsets.only(bottom: 6),
+                                horizontal: 10, vertical: 4),
+                            margin: const EdgeInsets.only(bottom: 8),
                             decoration: BoxDecoration(
-                              color: widget.item.isUrgent
-                                  ? const Color(0xFFFFDAD6)
-                                  : AppColors.secondaryContainer.withValues(alpha: 0.5),
+                              color: const Color(0xFFFFDAD6),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(
-                                  widget.item.isUrgent
-                                      ? Icons.warning_amber_rounded
-                                      : Icons.verified_user_outlined,
-                                  size: 11,
-                                  color: widget.item.isUrgent
-                                      ? const Color(0xFFBA1A1A)
-                                      : AppColors.primary,
+                                const Icon(
+                                  Icons.warning_amber_rounded,
+                                  size: 13,
+                                  color: Color(0xFFBA1A1A),
                                 ),
-                                const SizedBox(width: 4),
+                                const SizedBox(width: 5),
                                 Text(
-                                  widget.item.category!,
-                                  style: TextStyle(
-                                    fontSize: 10,
+                                  widget.isAmharic ? 'አስቸኳይ ክሊኒካዊ እርምጃ (በ72 ሰዓታት ውስጥ)' : 'Urgent Clinical Action (72h Window)',
+                                  style: const TextStyle(
+                                    fontSize: 10.5,
                                     fontWeight: FontWeight.bold,
-                                    color: widget.item.isUrgent
-                                        ? const Color(0xFFBA1A1A)
-                                        : AppColors.primary,
+                                    color: Color(0xFFBA1A1A),
                                   ),
                                 ),
                               ],
@@ -705,18 +703,29 @@ class _AnimatedChatBubbleState extends State<_AnimatedChatBubble>
                           ),
                         ],
 
-                        const SizedBox(height: 6),
-                        // Timestamp and source
-                        Text(
-                          widget.item.time,
-                          style: TextStyle(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w500,
-                            color: widget.isUser
-                                ? Colors.white70
-                                : AppColors.onSurfaceVariant,
+                        // Discreet source indicator / timestamp
+                        if (!widget.isUser && widget.item.source != null) ...[
+                          const SizedBox(height: 6),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.verified_rounded,
+                                size: 10,
+                                color: AppColors.secondary,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                widget.item.source!,
+                                style: const TextStyle(
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.secondary,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
+                        ],
                       ],
                     ),
                   ),

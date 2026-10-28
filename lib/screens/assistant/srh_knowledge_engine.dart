@@ -32,7 +32,7 @@ class SrhKnowledgeEngine {
 
     // Distinguish between educational inquiries vs active clinical emergencies
     final isEducational = _matchesAny(query, [
-      'what is', 'what are', 'define', 'definition', 'explain', 'meaning of', 'how does it work',
+      'what is', 'what are', 'what does', 'define', 'definition', 'explain', 'meaning of', 'means', 'how does it work',
       'how does pep work', 'difference between', 'tell me about', 'history of', 'can you explain',
       'ምንድን ነው', 'ምን ማለት ነው', 'አብራራልኝ', 'ትርጉም', 'ስለ', 'ልዩነቱ'
     ]);
@@ -135,7 +135,7 @@ class SrhKnowledgeEngine {
 
     // 11. Specific: DMPA-SC / Sayana Press (Self-injectable modern 3-month contraception)
     if (_matchesAny(query, [
-      'dmpasc', 'dmpa-sc', 'dmpa sc', 'sayana press', 'sayana', 'subcutaneous', 'self injection', 'self-inject',
+      'dmpasc', 'dmpa-sc', 'dmpa_sc', 'dmpa sc', 'dmpa', 'sayana press', 'sayana', 'subcutaneous', 'self injection', 'self-inject',
       'ሳያና ፕሬስ', 'ሳያና', 'በራስ የሚወጋ መርፌ', 'ዲኤምፒኤ'
     ])) {
       return _getDmpaScResponse(isAmharic);
@@ -189,7 +189,15 @@ class SrhKnowledgeEngine {
       return _getPrepResponse(isAmharic);
     }
 
-    // 17. Specific: STIs & Genital Symptoms (Syphilis, Gonorrhea, Chlamydia, Discharge)
+    // 17. Specific: HPV (Human Papillomavirus / የማህፀን በር ካንሰር አምጪ ቫይረስ)
+    if (_matchesAny(query, [
+      'hpv', 'human papilloma', 'papillomavirus', 'cervical cancer', 'genital warts',
+      'ኤችፒቪ', 'የሰው ፓፒሎማ ቫይረስ', 'የማህፀን በር ጫፍ ካንሰር'
+    ])) {
+      return _getHpvResponse(isAmharic);
+    }
+
+    // 18. Specific: STIs & Genital Symptoms (Syphilis, Gonorrhea, Chlamydia, Discharge)
     if (_matchesAny(query, [
       'sti', 'std', 'syphilis', 'gonorrhea', 'chlamydia', 'discharge', 'smell', 'odor', 'burning', 'itching', 'ulcer', 'sores', 'bumps',
       'አባለዘር', 'ፈሳሽ', 'ማሳከክ', 'ቁስል', 'ማቃጠል', 'ጨብጥ', 'ቂጥኝ'
@@ -964,6 +972,38 @@ class SrhKnowledgeEngine {
           'What is the difference between daily pills and Postpill?',
           'Are there pills safe for breastfeeding mothers?',
           'What are the warning signs to watch for?',
+        ],
+      );
+    }
+  }
+
+  static SrhResponse _getHpvResponse(bool isAmharic) {
+    if (isAmharic) {
+      return const SrhResponse(
+        category: 'የስነ-ተዋልዶ ጤና ትምህርት',
+        text: '🔬 **HPV (Human Papillomavirus) ምንድን ነው?**\n\n'
+            '• **ትክክለኛ ፍቺ:** HPV ማለት **የሰው ፓፒሎማ ቫይረስ (Human Papillomavirus)** ማለት ነው። ይህ ቫይረስ በግብረ-ስጋ ግንኙነት እና በቆዳ ንክኪ የሚተላለፍ በጣም የተለመደ ቫይረስ ነው።\n'
+            '• **የሚያስከትለው የጤና ችግር:** አብዛኛዎቹ የHPV አይነቶች ምንም ጉዳት ሳያደርሱ በራሳቸው ይጠፋሉ። ነገር ግን የተወሰኑት አይነቶች (በተለይ አይነት 16 እና 18) **የማህፀን በር ጫፍ ካንሰር (Cervical Cancer)** ሊያስከትሉ ይችላሉ፤ ሌሎች አይነቶች ደግሞ የብልት ኪንታሮት (Genital Warts) ያመጣሉ።\n'
+            '• **መከላከያ (የHPV ክትባት):** በኢትዮጵያ ጤና ጥበቃ ሚኒስቴር ለታዳጊ ሴቶች **ነፃ የHPV ክትባት** በትምህርት ቤቶች እና በጤና ጣቢያዎች ይሰጣል።\n'
+            '• **ምርመራ:** እድሜያቸው ከ30 ዓመት በላይ ለሆኑ ሴቶች በጤና ጣቢያዎች ቀላል የማህፀን በር ቅድመ-ካንሰር ምርመራ (VIA screening) በነፃ ይሰጣል።',
+        followUpQuestions: [
+          'የHPV ክትባት የት ይገኛል?',
+          'የማህፀን በር ጫፍ ካንሰር ምርመራ (VIA) ምንድን ነው?',
+          'የአባለዘር በሽታዎች መከላከያ መንገዶች',
+        ],
+      );
+    } else {
+      return const SrhResponse(
+        category: 'SRH Education',
+        text: '🔬 **What does HPV mean? (Human Papillomavirus):**\n\n'
+            '• **Medical Definition:** HPV stands for **Human Papillomavirus**. It is a common sexually transmitted viral infection transmitted through skin-to-skin intimate contact.\n'
+            '• **Health Risks:** While most infections clear naturally by the immune system, persistent high-risk strains (specifically types 16 and 18) are the primary cause of **cervical cancer**. Low-risk strains can cause benign genital warts.\n'
+            '• **Prevention (HPV Vaccine):** In Ethiopia, the national HPV vaccination campaign provides free, highly protective vaccines to adolescent girls through schools and public health centers before sexual debut.\n'
+            '• **Clinical Screening:** Routine visual inspection with acetic acid (VIA screening) is available free at public health centers and Marie Stopes clinics for early detection and outpatient cryotherapy.',
+        followUpQuestions: [
+          'Where is the free HPV vaccine available in Ethiopia?',
+          'What is Cervical Cancer VIA Screening?',
+          'How effective are condoms against HPV transmission?',
         ],
       );
     }

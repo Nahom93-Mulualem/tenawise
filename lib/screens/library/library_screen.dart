@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/localization/app_language.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/staggered_entrance.dart';
@@ -162,32 +163,48 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       );
                     }),
                     const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryContainer.withValues(alpha: 0.25),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: AppColors.primary.withValues(alpha: 0.2),
+                    InkWell(
+                      onTap: () async {
+                        final uri = Uri(scheme: 'tel', path: '8335');
+                        try {
+                          if (await canLaunchUrl(uri)) {
+                            await launchUrl(uri, mode: LaunchMode.externalApplication);
+                          } else {
+                            await launchUrl(uri);
+                          }
+                        } catch (e) {
+                          debugPrint('Error: $e');
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryContainer.withValues(alpha: 0.25),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppColors.primary.withValues(alpha: 0.2),
+                          ),
                         ),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.phone_in_talk, color: AppColors.primary, size: 20),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              isAmharic
-                                  ? 'ተጨማሪ ሚስጥራዊ መረጃ ይፈልጋሉ? በነፃ የጤና ስልክ መስመር 8335 ይደውሉ።'
-                                  : 'Need confidential counseling? Call free youth helpline 8335.',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.primary,
+                        child: Row(
+                          children: [
+                            const Icon(Icons.phone_in_talk, color: AppColors.primary, size: 20),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                isAmharic
+                                    ? 'ተጨማሪ ሚስጥራዊ መረጃ ይፈልጋሉ? በነፃ የጤና ስልክ መስመር 8335 ይደውሉ።'
+                                    : 'Need confidential counseling? Tap to call free youth helpline 8335.',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primary,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                            const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: AppColors.primary),
+                          ],
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -611,11 +628,15 @@ class _LibraryScreenState extends State<LibraryScreen> {
           ];
 
     return Container(
-      height: 44,
+      height: 46,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.outlineVariant.withValues(alpha: 0.35),
+        ),
       ),
       child: Row(
         children: List.generate(tabs.length, (index) {
@@ -624,12 +645,22 @@ class _LibraryScreenState extends State<LibraryScreen> {
           return Expanded(
             child: InkWell(
               onTap: () => _onTabSelected(index),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(13),
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
                 decoration: BoxDecoration(
                   color: isSelected ? AppColors.primary : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(13),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.22),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null,
                 ),
                 alignment: Alignment.center,
                 child: Row(

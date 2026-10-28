@@ -33,16 +33,16 @@ class ChatbotApiService {
   }
 
   static bool _backendAvailable = false;
-  static bool _geminiConfigured = false;
+  static bool _ollamaAvailable = false;
   static DateTime? _lastChecked;
 
   static bool get isBackendAvailable => _backendAvailable;
-  static bool get isGeminiConfigured => _geminiConfigured;
+  static bool get isOllamaAvailable => _ollamaAvailable;
 
-  /// Global notifier for reactive UI updates: 'gemini', 'local_server', 'offline'
+  /// Global notifier for reactive UI updates: 'ollama', 'local_server', 'offline'
   static final ValueNotifier<String> statusNotifier = ValueNotifier<String>('offline');
 
-  /// Probes the backend server to see if it is running and if Gemini API key is configured.
+  /// Probes the backend server to see if it is running and if local Ollama is active.
   static Future<void> checkBackendStatus() async {
     try {
       final uri = Uri.parse('$baseUrl/');
@@ -50,13 +50,14 @@ class ChatbotApiService {
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body) as Map<String, dynamic>;
         _backendAvailable = true;
-        _geminiConfigured = data['gemini_configured'] == true;
-        statusNotifier.value = _geminiConfigured ? 'gemini' : 'local_server';
+        final localOllama = data['local_ollama'] as Map<String, dynamic>?;
+        _ollamaAvailable = localOllama?['available'] == true;
+        statusNotifier.value = _ollamaAvailable ? 'ollama' : 'local_server';
         return;
       }
     } catch (_) {
       _backendAvailable = false;
-      _geminiConfigured = false;
+      _ollamaAvailable = false;
       statusNotifier.value = 'offline';
     }
   }
@@ -94,10 +95,10 @@ class ChatbotApiService {
             body: jsonEncode({
               'message': message,
               'language': isAmharic ? 'am' : 'en',
-              'history': history,  // ← now sent to backend so Ollama has memory
+              'history': history,
             }),
           )
-          .timeout(const Duration(seconds: 45));  // ← increased from 2s; Ollama needs up to 30-45s
+          .timeout(const Duration(seconds: 120)); // Allow up to 120s for local CPU model load
 
       if (response.statusCode == 200) {
         _backendAvailable = true;

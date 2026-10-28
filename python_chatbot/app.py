@@ -56,24 +56,28 @@ ETHIOPIAN_LOCAL_PARTNERS_AM = {
 SRH_SYSTEM_PROMPT = """You are TenaWise AI, an empathetic, non-judgmental, and medically accurate educational assistant specializing in Sexual and Reproductive Health (SRH) for young people in Ethiopia.
 
 Core Principles:
-1. Contextual Clinical Triage (NOT Naive Keyword Matching):
-   - You must distinguish between theoretical/educational questions vs. real-life urgent emergencies.
-   - Example A (Educational): "What is PEP?", "How does post-exposure prophylaxis work?", "What does unprotected sex mean?" -> This is an educational inquiry. Provide clear facts. Do NOT mark as an urgent emergency.
-   - Example B (Active Clinical Emergency): "I had sex without a condom last night, what do I do?", "The condom broke an hour ago", "I was forced/assaulted", "I am bleeding heavily and dizzy" -> This is an active emergency requiring immediate triage within the critical 72-hour window.
-2. Local Ethiopian Partner Referrals:
-   - When an urgent situation is detected (or when clinical follow-up is appropriate), explicitly refer the user to:
-     * Nearest Local Government Health Center / Hospital (for 100% free PEP within 72h, emergency contraception, and syndromic STI management)
+1. Strict Medical & Translation Accuracy (NEVER INVENT OR HALLUCINATE TRANSLATIONS):
+   - Medical acronyms like HPV, HIV, STI, PEP, PrEP, IUD, DMPA-SC must be preserved with their true clinical meanings.
+   - Example: HPV stands strictly for "Human Papillomavirus" (የሰው ፓፒሎማ ቫይረስ). It NEVER means "Hewer abeba" or "monthly flower" or anything flower-related.
+   - If asked for an Amharic definition of a medical term or acronym, state the official English medical name, explain the condition in clear Amharic, and provide the verified terminology. Never guess or fabricate translations.
+2. Contextual Clinical Triage (NOT Naive Keyword Matching):
+   - Distinguish educational/definition questions from genuine acute personal emergencies.
+   - Educational: "What is HPV?", "What is PEP?", "How does post-exposure prophylaxis work?", "What does unprotected sex mean?" -> Respond educationally. Do NOT mark as an urgent emergency.
+   - Active Emergency: "I had sex without a condom last night, what do I do?", "The condom broke an hour ago", "I was assaulted", "I am bleeding heavily and in severe pain" -> Immediate clinical triage within the critical 72h window.
+3. Structured, Clean Response Format:
+   - Provide a direct, concise 1-2 sentence answer first.
+   - Follow with a simple explanation or structured points.
+   - Provide prevention / treatment details based on Ethiopian MoH and WHO guidelines.
+   - Always conclude your response with complete thoughts and sentences. Never leave sentences or lists unfinished.
+4. Language Consistency:
+   - If the user writes in Amharic (or specifies Amharic), reply in natural, grammatically correct Amharic without awkward word-for-word machine translation.
+   - If the user writes in English, reply in clean, approachable English.
+5. Ethiopian Partner Referrals:
+   - When appropriate for clinical follow-up or emergencies, reference:
+     * Nearest Government Woreda Health Center / Hospital (free PEP within 72h, syndromic STI treatment)
      * Marie Stopes Ethiopia (MSE) Clinics
-     * Family Guidance Association of Ethiopia (FGAE) Youth-Friendly Centers
-     * National Youth Toll-Free Helpline: 8335
-     * National GBV Hotline: 6788
-3. Comprehensive Conceptual SRH Depth:
-   - Explain physiological mechanisms, biological conception, all contraception methods, menstrual cycle endocrinology, and bodily autonomy clearly and respectfully.
-4. Empathy & Confidentiality:
-   - Respond without judgment, guilt, or preachiness. Affirm the user's feelings and provide calm, clear steps.
-5. Language & Tone:
-   - If the user writes in Amharic, respond fluently in natural, respectful Amharic.
-   - If the user writes in English, respond in clear, easy-to-read English with structured bullet points.
+     * Family Guidance Association of Ethiopia (FGAE) Youth Centers
+     * National Youth Helpline: 8335 (Toll-free in Ethiopia)
 """
 
 class ChatMessage(BaseModel):
@@ -110,34 +114,33 @@ def _is_pregnancy_inquiry(text: str) -> bool:
     return any(t in lowered for t in preg_terms)
 
 def _contextual_urgency_assessment(text: str) -> bool:
-    """Smart contextual assessment for offline fallback mode.
-    Prioritizes acute emergencies and crisis situations above educational filters.
+    """Smart contextual assessment.
+    Returns True ONLY for acute crisis / assault / urgent personal exposure situations.
+    Returns False for educational, definitional, or general health inquiries.
     """
-    lowered = text.lower()
+    lowered = text.lower().strip()
 
-    # 1. Assault and acute trauma are ALWAYS urgent regardless of wording
-    if _is_assault_crisis(text):
+    # 1. Assault and acute trauma are ALWAYS urgent
+    if _is_assault_crisis(lowered):
         return True
 
-    # 2. Acute temporal emergency indicators (recent event within critical 72h window)
-    emergency_patterns = [
-        "hours ago", "hour ago", "yesterday", "last night", "today", "just happened",
-        "broke during", "condom broke", "bleeding heavily", "severe pain", "terrified", "need pep now",
-        "ሰዓት በፊት", "ትናንት", "ዛሬ", "አሁን", "ኮንዶም ተቀደደብን", "ደሜ አልቆመም"
-    ]
-    if any(p in lowered for p in emergency_patterns):
-        return True
-
-    # 3. If the user is explicitly asking for a definition or educational explanation, do NOT flag as urgent
+    # 2. If the user is asking an educational, definitional, or translation question, NEVER flag as urgent
     educational_patterns = [
-        "what is", "what are", "define", "definition", "explain", "meaning of", "how does it work",
-        "difference between", "tell me about", "history of", "can you explain",
-        "ምንድን ነው", "ምን ማለት ነው", "አብራራልኝ", "ትርጉም", "ስለ", "ልዩነቱ"
+        "what is", "what are", "what does", "define", "definition", "explain", "meaning of", "means",
+        "how does", "how do", "difference between", "tell me about", "can you explain",
+        "in amharic", "in english", "translation",
+        "ምንድን ነው", "ምን ማለት ነው", "አብራራልኝ", "ትርጉም", "ስለ", "ልዩነቱ", "በአማርኛ", "በእንግሊዘኛ"
     ]
     if any(p in lowered for p in educational_patterns):
         return False
 
-    return False
+    # 3. Acute personal emergency events (recent unprotected exposure within 72h window, bleeding)
+    emergency_patterns = [
+        "hours ago", "hour ago", "yesterday", "last night", "broke during", "condom broke",
+        "bleeding heavily", "severe pain", "need pep now",
+        "ሰዓት በፊት", "ትናንት", "ኮንዶም ተቀደደብን", "ደሜ አልቆመም"
+    ]
+    return any(p in lowered for p in emergency_patterns)
 
 def _build_referral_text(is_amharic: bool) -> str:
     if is_amharic:
@@ -306,8 +309,7 @@ def _generate_fallback_response(message: str, is_amharic: bool) -> ChatResponse:
             source="TenaWise Offline Clinical Engine"
         )
 
-# LLM Provider Configuration: 'auto' (checks Ollama first, then Gemini), 'ollama', or 'gemini'
-LLM_PROVIDER = os.getenv("LLM_PROVIDER", "auto").lower()
+# LLM Provider Configuration
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:3b")
 
@@ -333,7 +335,7 @@ def _build_history_text(history: List[ChatMessage]) -> str:
     return "### Conversation History (Most Recent First):\n" + "\n".join(lines) + "\n"
 
 
-def _query_ollama(prompt: str, is_amharic: bool) -> Optional[ChatResponse]:
+def _query_ollama(prompt: str, user_question: str, is_amharic: bool) -> Optional[ChatResponse]:
     """Queries local Ollama instance (e.g. qwen2.5:3b) with MoH RAG context."""
     try:
         payload = {
@@ -341,21 +343,25 @@ def _query_ollama(prompt: str, is_amharic: bool) -> Optional[ChatResponse]:
             "prompt": prompt,
             "stream": False,
             "options": {
-                "temperature": 0.3,
-                "num_predict": 450,
+                "temperature": 0.2,
+                "num_predict": 800,
             }
         }
-        res = requests.post(f"{OLLAMA_URL}/api/generate", json=payload, timeout=45)
+        res = requests.post(f"{OLLAMA_URL}/api/generate", json=payload, timeout=120)
         if res.status_code == 200:
             text = res.json().get("response", "").strip()
             if text:
-                is_urgent = _contextual_urgency_assessment(prompt)
+                # Close any dangling markdown tags if cut off
+                if text.count("**") % 2 != 0:
+                    text += "**"
+                # Assess urgency based on the user's specific inquiry (NOT the system guidelines prompt!)
+                is_urgent = _contextual_urgency_assessment(user_question)
                 referral = _build_referral_text(is_amharic) if is_urgent else None
                 reply = text + (f"\n\n{referral}" if is_urgent and referral and "8335" not in text else "")
                 
                 return ChatResponse(
                     reply=reply,
-                    category="Emergency Clinical Triage" if is_urgent else "TenaWise Local AI",
+                    category="Emergency Clinical Triage" if is_urgent else ("የስነ-ተዋልዶ ጤና ትምህርት" if is_amharic else "SRH Education"),
                     is_urgent=is_urgent,
                     referral_partner="Woreda Health Center / Marie Stopes / FGAE / 8335" if is_urgent else None,
                     follow_up_questions=[
@@ -371,18 +377,15 @@ def _query_ollama(prompt: str, is_amharic: bool) -> Optional[ChatResponse]:
 
 @app.get("/")
 def health_check():
-    has_gemini = bool(os.getenv("GEMINI_API_KEY"))
     ollama_ok = _check_ollama_available()
     chunks_count = len(clinical_retriever.local_index) if (clinical_retriever and clinical_retriever.local_index) else 0
     return {
         "status": "healthy",
         "app": "TenaWise SRH AI Chatbot",
-        "llm_provider": LLM_PROVIDER,
         "local_ollama": {
             "available": ollama_ok,
             "model": OLLAMA_MODEL if ollama_ok else None
         },
-        "gemini_configured": has_gemini,
         "knowledge_guidelines_indexed": chunks_count,
         "language_support": ["Amharic", "English"],
         "hotlines": {
@@ -396,17 +399,9 @@ def health_check():
         ]
     }
 
-# Active model candidates in priority order (gemini-3.1-flash-lite is active and fast)
-GEMINI_MODELS = [
-    "gemini-3.1-flash-lite",
-    "gemini-3-flash-preview",
-    "gemini-flash-latest",
-    "gemini-3.8-flash",
-]
-
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest):
-    api_key = os.getenv("GEMINI_API_KEY")
+    print(f"\n[USER QUESTION RECEIVED]: \"{request.message}\" (Language: {request.language})")
     is_amharic = request.language == "am" or any(ord(c) >= 0x1200 and ord(c) <= 0x137F for c in request.message)
 
     # 1. Retrieve verified passages from Ethiopian MoH / WHO documents
@@ -415,11 +410,12 @@ async def chat_endpoint(request: ChatRequest):
     if clinical_retriever:
         retrieved_passages = clinical_retriever.search(request.message, top_k=3)
         if retrieved_passages:
+            print(f"[*] RAG: Found {len(retrieved_passages)} matching document excerpts.")
             rag_context = clinical_retriever.format_context_for_prompt(retrieved_passages)
 
-    # 2. Check Local Ollama (Privacy-first, 100% offline) if enabled
-    if LLM_PROVIDER in ["auto", "ollama"] and _check_ollama_available():
-        # Build conversation history block so Ollama remembers previous turns
+    # 2. Query Local Ollama (Privacy-first, 100% offline, zero cloud dependency)
+    if _check_ollama_available():
+        print(f"[*] Dispatching prompt to local Ollama ({OLLAMA_MODEL})...")
         history_text = _build_history_text(request.history or [])
         ollama_prompt = (
             f"{SRH_SYSTEM_PROMPT}\n\n"
@@ -430,115 +426,16 @@ async def chat_endpoint(request: ChatRequest):
             f"Provide a clear, culturally sensitive, non-judgmental, and medically accurate response "
             f"based on the Ethiopian MoH and WHO guidelines above."
         )
-        ollama_res = _query_ollama(ollama_prompt, is_amharic)
+        ollama_res = _query_ollama(ollama_prompt, request.message, is_amharic)
         if ollama_res:
+            print(f"[+] ANSWER GENERATED by Ollama ({OLLAMA_MODEL}) [Category: {ollama_res.category}]:\n{ollama_res.reply[:120]}...\n")
             return ollama_res
-        if LLM_PROVIDER == "ollama":
-            # If user explicitly set provider to ollama, don't fall back to cloud
-            return _generate_fallback_response(request.message, is_amharic)
 
-    # 3. Fallback to Gemini if Ollama is not active and API key exists
-    if not api_key:
-        return _generate_fallback_response(request.message, is_amharic)
-
-    try:
-        from google import genai
-        client = genai.Client(api_key=api_key)
-
-        # Explicit instructions for JSON structure with clinical urgency assessment
-        triage_instructions = """
-You MUST perform a clinical triage of the user's situation based on CONTEXT, not just keywords:
-- CRITICAL CRISIS / ASSAULT PROTOCOL:
-  If the user mentions or asks about sexual assault, rape, coercion, or crisis:
-  1. ALWAYS begin with immediate trauma-informed reassurance: "First and most importantly: You are safe, and what happened is NOT your fault."
-  2. Directly address ALL specific information and questions asked by the user (e.g. if they asked about physical steps, explain the 72h PEP timeline, emergency contraception, and evidence preservation; if they asked about psychological steps, explain emotional grounding, confiding in trusted support, and trauma counseling).
-  3. Emphasize that Post-Exposure Prophylaxis (PEP) must begin within 72 hours and is 100% free in public health centers.
-  4. Always include referrals to Ethiopian helplines: Toll-Free Youth Helpline 8335 and National GBV Helpline 6788.
-
-- Set "is_urgent": true ONLY if the user is describing an actual, acute personal situation that requires immediate clinical action within 72 hours (e.g. recent unprotected sex, condom broke during intercourse, assault, severe pain, heavy bleeding).
-- Set "is_urgent": false if the user is asking an educational, historical, or theoretical question (e.g. "What is PEP?", "Explain contraception", "What is unprotected sex?").
-- If urgent or recommending a clinical visit, ALWAYS include referrals to:
-  1. Nearest Government Woreda Health Center / Hospital (for 100% free PEP & care within 72h)
-  2. Marie Stopes Ethiopia (MSE) Clinics
-  3. Family Guidance Association of Ethiopia (FGAE) Youth Centers
-  4. Toll-Free Youth Helpline: 8335
-  5. National GBV Helpline: 6788
-
-Output format: Return ONLY a valid JSON object with these keys:
-{
-  "reply": "string (your comprehensive, empathetic response with formatting)",
-  "category": "string (e.g. 'Crisis Intervention', 'Emergency Triage', 'Contraception', 'STI Education')",
-  "is_urgent": boolean,
-  "referral_partner": "string or null",
-  "follow_up_questions": ["string", "string", "string"]
-}
-"""
-
-        prompt_content = f"{SRH_SYSTEM_PROMPT}\n\n{rag_context}\n\n{triage_instructions}\n\nUser Question: {request.message}\nLanguage Preferred: {'Amharic' if is_amharic else 'English'}"
-
-        response = None
-        chosen_model = None
-        last_error = None
-
-        # Resilient model cascade: try fast & active models
-        for model_name in GEMINI_MODELS:
-            try:
-                response = client.models.generate_content(
-                    model=model_name,
-                    contents=prompt_content,
-                )
-                if response and response.text:
-                    chosen_model = model_name
-                    break
-            except Exception as err:
-                last_error = err
-                print(f"Model {model_name} failed: {err}. Trying next candidate...", file=sys.stderr)
-                continue
-
-        if not response or not chosen_model:
-            raise last_error or RuntimeError("All Gemini candidate models failed to respond.")
-
-        response_text = response.text or "{}"
-        
-        # Parse JSON from Gemini response (handles code blocks ```json ... ``` gracefully)
-        json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
-        if json_match:
-            try:
-                data = json.loads(json_match.group(0))
-                reply = data.get("reply", response_text)
-                category = data.get("category", "TenaWise SRH AI")
-                is_urgent = bool(data.get("is_urgent", False))
-                referral = data.get("referral_partner")
-                follow_ups = data.get("follow_up_questions", [])
-
-                return ChatResponse(
-                    reply=reply,
-                    category=category,
-                    is_urgent=is_urgent,
-                    referral_partner=referral,
-                    follow_up_questions=follow_ups if isinstance(follow_ups, list) else [],
-                    source=f"Gemini AI ({chosen_model}) via TenaWise"
-                )
-            except Exception:
-                pass
-
-        # Fallback parsing if JSON wasn't structured
-        is_urgent = _contextual_urgency_assessment(request.message)
-        return ChatResponse(
-            reply=response_text,
-            category="TenaWise SRH AI",
-            is_urgent=is_urgent,
-            referral_partner="Woreda Health Center / Marie Stopes / FGAE / 8335" if is_urgent else None,
-            follow_up_questions=[
-                "የወሊድ መከላከያ ዘዴዎች ምን ምን ናቸው?" if is_amharic else "What are common contraception options?",
-                "በአቅራቢያዬ ያለ ነፃ ጤና ጣቢያ የት ይገኛል?" if is_amharic else "Where can I find free youth clinics?",
-                "የአደጋ ጊዜ ስልክ 8335" if is_amharic else "Toll-free youth helpline 8335"
-            ],
-            source=f"Gemini AI ({chosen_model}) via TenaWise"
-        )
-    except Exception as e:
-        print(f"Error invoking Gemini API: {e}", file=sys.stderr)
-        return _generate_fallback_response(request.message, is_amharic)
+    # 3. Built-in instant Clinical Rule Fallback (if Ollama is offline or busy)
+    print("[!] Ollama not available or timed out. Using built-in offline clinical engine.")
+    fallback = _generate_fallback_response(request.message, is_amharic)
+    print(f"[+] ANSWER GENERATED by Fallback Engine [Category: {fallback.category}]:\n{fallback.reply[:120]}...\n")
+    return fallback
 
 if __name__ == "__main__":
     import uvicorn

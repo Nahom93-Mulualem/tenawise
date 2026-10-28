@@ -6,9 +6,9 @@ import 'package:tenawise/core/widgets/staggered_entrance.dart';
 void main() {
   testWidgets('TenaWiseApp smoke test verifies new tactile & staggered UI',
       (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+    // Build our app and trigger frames.
     await tester.pumpWidget(const TenaWiseApp());
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 600));
 
     // Verify header title appears
     expect(find.text('TenaWise'), findsOneWidget);
@@ -21,7 +21,7 @@ void main() {
 
     // Verify headline appears
     expect(
-      find.text('Your health. Your knowledge. Your choice.'),
+      find.text('Your health, your choice, your safe space.'),
       findsOneWidget,
     );
   });

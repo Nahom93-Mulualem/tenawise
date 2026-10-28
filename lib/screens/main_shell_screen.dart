@@ -56,12 +56,20 @@ class _MainShellScreenState extends State<MainShellScreen> {
               : null,
           bottomNavigationBar: Container(
             decoration: BoxDecoration(
+              color: AppColors.surface,
               border: Border(
                 top: BorderSide(
                   color: AppColors.outlineVariant.withValues(alpha: 0.35),
                   width: 0.8,
                 ),
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, -2),
+                ),
+              ],
             ),
             child: NavigationBar(
               selectedIndex: _currentIndex,
@@ -69,7 +77,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
               backgroundColor: AppColors.surface,
               indicatorColor: AppColors.secondaryContainer,
               elevation: 0,
-              height: 68,
+              height: 70,
               labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
               destinations: [
                 NavigationDestination(
@@ -83,14 +91,14 @@ class _MainShellScreenState extends State<MainShellScreen> {
                   label: isAmharic ? 'ዑደት' : 'Cycle',
                 ),
                 NavigationDestination(
-                  icon: const Icon(Icons.menu_book_outlined),
-                  selectedIcon: const Icon(Icons.menu_book_rounded, color: AppColors.primary),
-                  label: isAmharic ? 'ቤተ-መጽሐፍት' : 'Library',
+                  icon: const Icon(Icons.auto_stories_outlined),
+                  selectedIcon: const Icon(Icons.auto_stories_rounded, color: AppColors.primary),
+                  label: isAmharic ? 'መመሪያዎች' : 'Library',
                 ),
                 NavigationDestination(
-                  icon: const Icon(Icons.auto_awesome_outlined),
-                  selectedIcon: const Icon(Icons.auto_awesome, color: AppColors.primary),
-                  label: isAmharic ? 'ጤና ዋይዝ' : 'TenaWise AI',
+                  icon: const Icon(Icons.chat_bubble_outline_rounded),
+                  selectedIcon: const Icon(Icons.chat_bubble_rounded, color: AppColors.primary),
+                  label: isAmharic ? 'ጤና ዋይዝ AI' : 'Ask AI',
                 ),
               ],
             ),
