@@ -39,12 +39,62 @@ Flutter client (Dart)
 Python FastAPI service
   ├─ /api/chat and health endpoint
   ├─ ClinicalRetriever: ChromaDB vector search when initialized
-  │     └─ JSON knowledge-index search fallback
+  │     └─ JSON knowledge-index keyword-search fallback
   ├─ Optional local Ollama model for response generation
   └─ Built-in clinical rule-based fallback
 ```
 
 The Python service is optional for the Flutter app's local rule-based assistant. When enabled, the API retrieves up to three relevant passages before constructing the Ollama prompt. Do not describe the service as cloud-hosted or fully independent of local setup: Ollama must be installed and running to use the local language model, and the backend itself must be reachable for API-backed chat.
+
+### RAG and ChromaDB data flow
+
+The following flow describes the implemented Python retrieval-augmented generation (RAG) path. Use current, approved SRH reference material as the source; the application does not automatically verify that a document is authoritative or up to date.
+
+```text
+INDEXING (run by a developer)
+Approved SRH PDF/TXT documents
+        │
+        ▼
+Text extraction (PDF) / text loading (TXT)
+        │
+        ▼
+Text chunking (overlapping chunks)
+        │
+        ▼
+Sentence-transformer embeddings (all-MiniLM-L6-v2)
+        │
+        ▼
+Persistent ChromaDB collection
+python_chatbot/chroma_db/ — tenawise_srh_guidelines
+        │
+        │
+QUERY (when a user sends a question to the Python API)
+        ▼
+User question ──► ChromaDB embeds the query and runs similarity search
+        │
+        ▼
+Up to 3 matching passages + source/page metadata
+        │
+        ▼
+Prompt context + question + recent conversation history
+        │
+        ▼
+Local Ollama model (configured default: qwen2.5:3b)
+        │
+        ▼
+Context-aware answer, with urgency/referral handling by the API
+```
+
+Important implementation details and fallbacks:
+
+- `python_chatbot/rag_engine/ingest.py` reads PDF and UTF-8 TXT files, extracts or loads their text, splits text into overlapping chunks, then attempts to upsert the chunks and source metadata into the persistent ChromaDB collection `tenawise_srh_guidelines`.
+- ChromaDB's `SentenceTransformerEmbeddingFunction` uses `all-MiniLM-L6-v2`. The collection embedding function embeds the documents during ingestion and the user's query during vector search; the code does not separately build or store query embeddings itself.
+- The API asks the retriever for `top_k=3`. When ChromaDB returns results, these excerpts are formatted into context for the Ollama prompt.
+- The ingestion script also writes `python_chatbot/knowledge_index.json`. If ChromaDB is missing, uninitialized, or a Chroma query fails, `ClinicalRetriever` can use this JSON index's local keyword-based search instead. That fallback is not vector similarity search and should not be described as embedding-based retrieval.
+- Ollama is optional. `.env.example` configures `OLLAMA_MODEL=qwen2.5:3b` by default, but a developer may configure a different model. If Ollama is unavailable or fails, the Python service returns its built-in rule-based response; that fallback does not generate an LLM answer from the retrieved context. If the Flutter client cannot reach the Python backend, it uses the Dart-side SRH knowledge engine.
+- ChromaDB usage is implemented, but a ChromaDB database is not required to be committed to Git. The local persistent database is created/populated by ingestion; the JSON index is the checked-in fallback.
+
+This pipeline can ground a generated response in retrieved documents, but it does **not** guarantee medical accuracy or eliminate hallucinations. Keep source attribution, clinical review, safety testing, and clear educational-not-medical-advice messaging in place.
 
 ### ChromaDB status
 
